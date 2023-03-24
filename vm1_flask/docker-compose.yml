@@ -1,0 +1,589 @@
+version: '3.8'
+x-airflow-common:
+  &airflow-common
+  build:
+    context: ./services/airflow
+    dockerfile: ./Dockerfile
+  environment:
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS=False
+    - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres:5432/airflow
+    - AIRFLOW__CORE__STORE_DAG_CODE=True
+    - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
+    - AIRFLOW__CORE__FERNET_KEY=FB0o_zt4e3Ziq3LdUUO7F2Z95cvFFx16hU8jTeR1ASM=
+    - AIRFLOW__CORE__LOGGING_LEVEL=INFO
+    - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+    - AIRFLOW__CORE__DEFAULT_TIMEZONE=Europe/Moscow
+  volumes:
+    - ./services/airflow/dags:/opt/airflow/dags
+    - ./services/airflow/airflow-data/logs:/opt/airflow/logs
+    - ./services/airflow/airflow-data/plugins:/opt/airflow/plugins
+    - ./services/airflow/airflow-data/airflow.cfg:/opt/airlfow/airflow.cfg
+  depends_on:
+    - postgres
+
+services:
+
+  mongo:
+    image: mongo
+    restart: always
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: operate_database
+      MONGO_INITDB_ROOT_PASSWORD: operate_database
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data/db
+    networks:
+      flask:
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: operate_database
+      ME_CONFIG_MONGODB_ADMINPASSWORD: operate_database
+      ME_CONFIG_MONGODB_URL: mongodb://operate_database:operate_database@mongo:27017/
+    expose:
+      - 8081
+    depends_on:
+      - mongo
+    networks:
+      flask:
+
+  flask:
+    build:
+      context: ./services/flask_app
+      dockerfile: ./Dockerfile
+    container_name: flask
+#    platform: linux/amd64
+    command: gunicorn --bind 0.0.0.0:8000 app:app
+#    command: python3 app.py
+    volumes:
+      - static:/home/app/flask_app/static
+      - logs:/home/app/flask_app/logs
+      - ./services/flask_app/templates:/home/app/flask_app/templates
+      - ./services/flask_app:/home/app/flask_app
+    expose:
+      - 8000
+    env_file:
+      - .env.dev
+    depends_on:
+      - mongo
+    networks:
+      flask:
+
+  kafka_data_worker:
+    build:
+      context: ./services/kafka
+      dockerfile: ./Dockerfile
+    container_name: kafka_data_worker
+    restart: always
+    command: python data_worker.py -f data -t features  -bs broker1:29092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
+    volumes:
+      - ./services/kafka:/home/app
+    depends_on:
+      - kafka_feature_worker
+    networks:
+      flask:
+
+  kafka_feature_worker:
+    build:
+      context: ./services/kafka
+      dockerfile: ./Dockerfile
+    container_name: kafka_feature_worker
+    restart: always
+    command: python data_worker.py -f features -t predicts -bs broker1:29092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
+    volumes:
+      - ./services/kafka:/home/app
+    depends_on:
+      - kafka_predicts_worker
+    networks:
+      flask:
+
+  kafka_predicts_worker:
+    build:
+      context: ./services/kafka
+      dockerfile: ./Dockerfile
+    container_name: kafka_predicts_worker
+    restart: always
+    command: python data_worker.py -f predicts -t empty -bs broker1:29092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
+    volumes:
+      - ./services/kafka:/home/app
+    depends_on:
+      - airflow-webserver
+      - broker1
+      - zookeeper
+    networks:
+      flask:
+
+#  prometheus:
+#    image: prom/prometheus
+#    container_name: prometheus
+#    restart: unless-stopped
+#    volumes:
+#      - ./services/prometheus/config.yml:/etc/prometheus/prometheus.yml
+#      - prometheus:/prometheus
+#    command:
+#      - '--config.file=/etc/prometheus/prometheus.yml'
+#      - '--storage.tsdb.path=/prometheus'
+#      - '--web.console.libraries=/etc/prometheus/console_libraries'
+#      - '--web.console.templates=/etc/prometheus/consoles'
+#      - '--storage.tsdb.retention.time=200h'
+#      - '--web.enable-lifecycle'
+#    expose:
+#      - 9090
+#    depends_on:
+#      - flask
+#    networks:
+#      flask:
+
+#  grafana:
+#    image: grafana/grafana
+#    container_name: grafana
+#    volumes:
+#      - ./services/grafana/config.ini:/etc/grafana/grafana.ini
+#      - ./services/grafana/datasource.yml:/etc/grafana/provisioning/datasources/default.yml
+#      - ./services/grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/default.yml
+#      - ./services/grafana/dashboards:/var/lib/grafana/dashboards
+#      - grafana_data:/var/lib/grafana
+#    environment:
+#        GF_SECURITY_ADMIN_USER: 'grafana_admin'
+#        GF_SECURITY_ADMIN_PASSWORD: 'grafana_admin'
+#        GF_USERS_ALLOW_SIGN_UP: 'false'
+#    expose:
+#      - 3000
+#    depends_on:
+#      - prometheus
+#    networks:
+#      flask:
+
+  postgres:
+    build:
+      context: ./services/postgres
+      dockerfile: ./Dockerfile
+    container_name: postgres
+    volumes:
+#      - ./services/postgres:/docker-entrypoint-initdb.d
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_MULTIPLE_DATABASES=airflow,mlflow
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    networks:
+      flask:
+
+  airflow-init:
+    << : *airflow-common
+    container_name: airflow_init
+#    restart: on-failure
+    entrypoint: /bin/bash
+    command:
+      -c "airflow db init && \
+          airflow users create --username admin --password admin --email admin@airflow.com \
+            --role Admin --firstname Admin --lastname Admin && \
+          airflow connections add --conn-uri \
+            postgres+psycopg2://investing_db:investing_db@192.168.1.15:5432/investing_db postgres_conn && \
+          airflow connections add --conn-uri \
+            mongo://operate_database:operate_database@mongo:27017 mongodb_conn && \
+          airflow connections add --conn-uri http://export.finam.ru/ http_finam"
+    depends_on:
+      - postgres
+    networks:
+      flask:
+
+  airflow-webserver:
+    << : *airflow-common
+    container_name: airflow_webserver
+    command: airflow webserver
+    expose:
+      - 8080
+    restart: always
+    depends_on:
+      - airflow-init
+    networks:
+      flask:
+
+  airflow-scheduler:
+    << : *airflow-common
+    container_name: airflow_scheduler
+    command: airflow scheduler
+    restart: always
+    depends_on:
+      - airflow-init
+    networks:
+      flask:
+
+#  mlflow:
+#    build:
+#      context: ./services/mlflow
+#      dockerfile: ./Dockerfile
+#    container_name: mlflow
+#    restart: on-failure
+#    command: mlflow server
+#      --backend-store-uri postgresql+psycopg2://postgres:postgres@postgres:5432/mlflow
+#      --default-artifact-root /mnt/mlruns
+#      --host 0.0.0.0
+#      --port 4040
+#    volumes:
+#      - ./services/mlflow/mnt/mlruns:/mnt/mlruns
+#      - mlflow:/backend
+#    expose:
+#      - 4040
+#    depends_on:
+#      - postgres
+#    networks:
+#      flask:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - 22181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      flask:
+
+  broker1:
+    image: confluentinc/cp-server:latest
+    hostname: broker1
+    container_name: broker1
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+      - 9101:9101
+    environment:
+      KAFKA_BROKER_ID: 1
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker1:29092,EXTERNAL://192.168.1.13:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_ADVERTISED_HOST_NAME: 0.0.0.0
+#      KAFKA_ADVERTISED_PROTOCOL_NAME: EXTERNAL
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: schema-registry:8091
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker1:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+    networks:
+      flask:
+
+#  broker2:
+#    image: confluentinc/cp-server:latest
+#    hostname: broker2
+#    container_name: broker2
+#    depends_on:
+#      - zookeeper
+#    ports:
+#      - "9093:9093"
+#      - "9102:9102"
+#    environment:
+#      KAFKA_BROKER_ID: 2
+#      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2:29093,PLAINTEXT_HOST://localhost:9093
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+#      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+#      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9093
+#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+#      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+#      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 3
+#      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 3
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 3
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+#      KAFKA_JMX_PORT: 9102
+#      KAFKA_JMX_HOSTNAME: localhost
+#      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8091
+#      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker2:29093
+#      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+#      CONFLUENT_METRICS_ENABLE: 'true'
+#      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+#    networks:
+#      flask:
+#
+#  broker3:
+#    image: confluentinc/cp-server:latest
+#    hostname: broker3
+#    container_name: broker3
+#    depends_on:
+#      - zookeeper
+#    ports:
+#      - "9094:9094"
+#      - "9103:9103"
+#    environment:
+#      KAFKA_BROKER_ID: 3
+#      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker3:29094,PLAINTEXT_HOST://localhost:9094
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+#      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+#      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29094,PLAINTEXT_HOST://0.0.0.0:9094
+#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+#      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+#      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 3
+#      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 3
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 3
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+#      KAFKA_JMX_PORT: 9103
+#      KAFKA_JMX_HOSTNAME: localhost
+#      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8091
+#      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker3:29094
+#      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+#      CONFLUENT_METRICS_ENABLE: 'true'
+#      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+#    networks:
+#      flask:
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - broker1
+#      - broker2
+#      - broker3
+    ports:
+      - "8091:8091"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker1:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8091
+    networks:
+      flask:
+
+  connect:
+    image: cnfldemos/cp-server-connect-datagen:0.6.0-7.3.0
+    hostname: connect
+    container_name: connect
+    depends_on:
+      - broker1
+#      - broker2
+#      - broker3
+      - schema-registry
+    ports:
+      - "8093:8093"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1:29092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8091
+      # CLASSPATH required due to CC-2422
+      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-7.3.0.jar
+      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
+      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
+    networks:
+      flask:
+
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:latest
+    hostname: control-center
+    container_name: control-center
+    depends_on:
+      - broker1
+#      - broker2
+#      - broker3
+      - schema-registry
+      - connect
+      - ksqldb-server
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker1:29092'
+      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: 'connect:8093'
+      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8098"
+      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8098"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8091"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
+    networks:
+      flask:
+
+  ksqldb-server:
+    image: confluentinc/cp-ksqldb-server:latest
+    hostname: ksqldb-server
+    container_name: ksqldb-server
+    depends_on:
+      - broker1
+#      - broker2
+#      - broker3
+      - connect
+    ports:
+      - "8098:8098"
+    environment:
+      KSQL_CONFIG_DIR: "/etc/ksql"
+      KSQL_BOOTSTRAP_SERVERS: "broker1:29092"
+      KSQL_HOST_NAME: ksqldb-server
+      KSQL_LISTENERS: "http://0.0.0.0:8098"
+      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8091"
+      KSQL_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
+      KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
+      KSQL_KSQL_CONNECT_URL: "http://connect:8093"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_REPLICATION_FACTOR: 1
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
+    networks:
+      flask:
+#
+#  ksqldb-cli:
+#    image: confluentinc/cp-ksqldb-cli:latest
+#    container_name: ksqldb-cli
+#    depends_on:
+#      - broker1
+#      - broker2
+#      - broker3
+#      - connect
+#      - ksqldb-server
+#    entrypoint: /bin/sh
+#    tty: true
+#    networks:
+#      flask:
+#
+#  ksql-datagen:
+#    image: confluentinc/ksqldb-examples:latest
+#    hostname: ksql-datagen
+#    container_name: ksql-datagen
+#    depends_on:
+#      - ksqldb-server
+#      - broker1
+#      - broker2
+#      - broker3
+#      - schema-registry
+#      - connect
+#    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+#                       cub kafka-ready -b broker1:29092,broker2:29093,broker3:29094 3 40 && \
+#                       echo Waiting for Confluent Schema Registry to be ready... && \
+#                       cub sr-ready schema-registry 8091 40 && \
+#                       echo Waiting a few seconds for topic creation to finish... && \
+#                       sleep 11 && \
+#                       tail -f /dev/null'"
+#    environment:
+#      KSQL_CONFIG_DIR: "/etc/ksql"
+#      STREAMS_BOOTSTRAP_SERVERS: broker1:29092,broker2:29093,broker3:29094
+#      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
+#      STREAMS_SCHEMA_REGISTRY_PORT: 8091
+#    networks:
+#      flask:
+#
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:latest
+    depends_on:
+      - broker1
+#      - broker2
+#      - broker3
+      - schema-registry
+#    ports:
+#      - 8092:8092
+    expose:
+      - 8092
+    hostname: rest-proxy
+    container_name: rest-proxy
+    environment:
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'broker1:29092'
+      KAFKA_REST_LISTENERS: "http://0.0.0.0:8092"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8091'
+    networks:
+      flask:
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+#    command: redis-server --save 20 1 --loglevel warning --requirepass sOmePass
+    volumes:
+      - cache:/data
+    networks:
+      flask:
+
+  redis-commander:
+    container_name: redis-commander
+#    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "3010:8081"
+    depends_on:
+      - redis
+    networks:
+      flask:
+
+  nginx:
+    build:
+      context: ./services/nginx
+      dockerfile: ./Dockerfile
+    container_name: flask_nginx
+    restart: on-failure
+    volumes:
+      - static:/home/app/flask_app/static
+    ports:
+      - 80:80
+      - 1337:80
+#      - 4040:4040
+      - 8080:8080
+      - 8081:8081
+#      - 39092:39092
+#      - 39093:39093
+#      - 39094:39094
+#      - 9090:9090
+    depends_on:
+      - flask
+      - airflow-init
+#      - mlflow
+      - mongo-express
+      - redis-commander
+#      - grafana
+    networks:
+      flask:
+
+networks:
+    flask:
+
+volumes:
+    static:
+    logs:
+    mongo:
+    postgres:
+    cache:
+#    prometheus:
+#    grafana_data:
+#    mlflow:
+

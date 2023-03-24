@@ -1,0 +1,114 @@
+<html>  
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    	<link rel="stylesheet" href="{{url_for('static', filename = 'css/style.css')}}">
+	</head>
+	<body>
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<div class="content">
+			<div class="menu">
+				<div class="menu-up">
+					<div class="header">
+						<a class="header-logo" href="#">LOGO</a>
+					</div>
+					<div class="menu-item-block">
+						<a class="menu-item" href="#">акции</a>
+						<a class="menu-item" href="#">облигации</a>
+						<a class="menu-item" href="#">индексы</a>
+					</div>
+					<div class="menu-item-block">	
+						<a class="menu-item" href="#">симуляция</a>
+					</div>
+				</div>
+				<div class="menu-down">
+					<div class="menu-item-block">
+						<a class="menu-item md" href="#">о проекте</a>
+					</div>
+				</div>
+			</div>
+			<div class="main"> 
+				<div class="header">
+				</div>
+				<div class="graphs">
+					<div class="tickers">
+						{% for ticker in response.tickers %}
+							<a class="ticker" href="#">
+								{{ ticker }}
+							</a>
+						{% endfor %}
+					</div>
+					<div id="graphs-windows" class="graphs-windows drop_list">
+						{% for g_id, g_class, g_name, g_plot in response.graphs %}
+							<div id="{{ g_id }}" class="graph-{{ g_class }} drop">
+							<script>
+									var graphs = {{g_plot | safe}};
+									var div_parent = document.getElementById( "{{ g_id }}" );
+									console.log( div_parent.offsetWidth )
+									console.log( div_parent.offsetHeight )
+									console.log( div_parent.clientWidth )
+									console.log( div_parent.clientHeight )
+									console.log( window.innerWidth )
+									console.log( window.innerHeight )
+									console.log( div_parent.style.width )
+									console.log( div_parent.style.height )
+
+									config = {"displayModeBar": false,
+											 "doubleClick": "autosize",
+											 "autosizable": false,
+											 "responsive": true,
+											 "scrollZoom": true,
+											 "showAxisDragHandles": true,
+											 "showAxisRangeEntryBoxes": true,
+											 }
+
+									graphs.config = config
+									layout = {"width": div_parent.offsetWidth,
+											  "height": div_parent.offsetHeight}
+									console.log( layout )
+									console.log( config )
+									var plot = Plotly.newPlot("{{ g_id }}", graphs, layout, config);
+									console.log(plot)
+									console.log(plot.offsetHeight)
+							</script>
+							</div>
+						{% endfor %}
+					</div>
+					<div class="predict">
+						<div>
+							<p class="unvisible"> </p>
+							<p> 1d</p>
+							<p> 3d</p>
+							<p> 7d</p>
+						</div>
+						<div>
+							<p>class</p>
+							<p>up</p>
+							<p>same</p>
+							<p>down</p>
+						</div>
+						<div>
+							<p>value</p>
+							<p>100</p>
+							<p>90</p>
+							<p>80</p>
+						</div>
+						<div>
+							<p>likelyhood</p>
+							<p>73%</p>
+							<p>65%</p>
+							<p>58%</p>
+						</div>
+					</div>
+				</div>
+				<div class="footer">
+					<div class="footer-logo">
+						<p>(r) bfp</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="{{url_for('static', filename = 'js/func.js')}}"></script>
+</html>

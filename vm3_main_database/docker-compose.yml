@@ -16,7 +16,6 @@ services:
       - 5432:5432
     networks:
       postgres:
-        ipv4_address: 172.16.2.5
 
   pgadmin:
     container_name: pgadmin
@@ -31,7 +30,6 @@ services:
     restart: unless-stopped
     networks:
       postgres:
-        ipv4_address: 172.16.2.6
     links:
       - postgres
 
@@ -44,20 +42,11 @@ services:
 #      - 5432:5432
     networks:
       postgres:
-        ipv4_address: 172.16.2.4
     links:
       - postgres
 
 networks:
   postgres:
-    driver: bridge
-    ipam:
-#      driver: default
-      config:
-        - subnet: 172.16.2.0/24
-          gateway: 172.16.2.1
-#    external:
-#      name: postgres
 
 volumes:
   postgres:
