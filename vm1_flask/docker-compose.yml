@@ -371,39 +371,39 @@ services:
     networks:
       flask:
 
-  connect:
-    image: cnfldemos/cp-server-connect-datagen:0.6.0-7.3.0
-    hostname: connect
-    container_name: connect
-    depends_on:
-      - broker1
-#      - broker2
-#      - broker3
-      - schema-registry
-    ports:
-      - "8093:8093"
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1:29092'
-      CONNECT_REST_ADVERTISED_HOST_NAME: connect
-      CONNECT_GROUP_ID: compose-connect-group
-      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
-      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
-      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8091
-      # CLASSPATH required due to CC-2422
-      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-7.3.0.jar
-      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
-      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
-      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
-    networks:
-      flask:
+#  connect:
+#    image: cnfldemos/cp-server-connect-datagen:0.6.0-7.3.0
+#    hostname: connect
+#    container_name: connect
+#    depends_on:
+#      - broker1
+##      - broker2
+##      - broker3
+#      - schema-registry
+#    ports:
+#      - "8093:8093"
+#    environment:
+#      CONNECT_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1:29092'
+#      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+#      CONNECT_GROUP_ID: compose-connect-group
+#      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+#      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+#      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+#      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+#      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+#      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+#      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+#      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+#      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+#      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8091
+#      # CLASSPATH required due to CC-2422
+#      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-7.3.0.jar
+#      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
+#      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
+#      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+#      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
+#    networks:
+#      flask:
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:latest
@@ -432,32 +432,32 @@ services:
     networks:
       flask:
 
-  ksqldb-server:
-    image: confluentinc/cp-ksqldb-server:latest
-    hostname: ksqldb-server
-    container_name: ksqldb-server
-    depends_on:
-      - broker1
-#      - broker2
-#      - broker3
-      - connect
-    ports:
-      - "8098:8098"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_BOOTSTRAP_SERVERS: "broker1:29092"
-      KSQL_HOST_NAME: ksqldb-server
-      KSQL_LISTENERS: "http://0.0.0.0:8098"
-      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8091"
-      KSQL_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
-      KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
-      KSQL_KSQL_CONNECT_URL: "http://connect:8093"
-      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_REPLICATION_FACTOR: 1
-      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
-      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
-    networks:
-      flask:
+#  ksqldb-server:
+#    image: confluentinc/cp-ksqldb-server:latest
+#    hostname: ksqldb-server
+#    container_name: ksqldb-server
+#    depends_on:
+#      - broker1
+##      - broker2
+##      - broker3
+#      - connect
+#    ports:
+#      - "8098:8098"
+#    environment:
+#      KSQL_CONFIG_DIR: "/etc/ksql"
+#      KSQL_BOOTSTRAP_SERVERS: "broker1:29092"
+#      KSQL_HOST_NAME: ksqldb-server
+#      KSQL_LISTENERS: "http://0.0.0.0:8098"
+#      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
+#      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8091"
+#      KSQL_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
+#      KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
+#      KSQL_KSQL_CONNECT_URL: "http://connect:8093"
+#      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_REPLICATION_FACTOR: 1
+#      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
+#      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
+#    networks:
+#      flask:
 #
 #  ksqldb-cli:
 #    image: confluentinc/cp-ksqldb-cli:latest
@@ -499,26 +499,26 @@ services:
 #    networks:
 #      flask:
 #
-  rest-proxy:
-    image: confluentinc/cp-kafka-rest:latest
-    depends_on:
-      - broker1
-#      - broker2
-#      - broker3
-      - schema-registry
-#    ports:
-#      - 8092:8092
-    expose:
-      - 8092
-    hostname: rest-proxy
-    container_name: rest-proxy
-    environment:
-      KAFKA_REST_HOST_NAME: rest-proxy
-      KAFKA_REST_BOOTSTRAP_SERVERS: 'broker1:29092'
-      KAFKA_REST_LISTENERS: "http://0.0.0.0:8092"
-      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8091'
-    networks:
-      flask:
+#  rest-proxy:
+#    image: confluentinc/cp-kafka-rest:latest
+#    depends_on:
+#      - broker1
+##      - broker2
+##      - broker3
+#      - schema-registry
+##    ports:
+##      - 8092:8092
+#    expose:
+#      - 8092
+#    hostname: rest-proxy
+#    container_name: rest-proxy
+#    environment:
+#      KAFKA_REST_HOST_NAME: rest-proxy
+#      KAFKA_REST_BOOTSTRAP_SERVERS: 'broker1:29092'
+#      KAFKA_REST_LISTENERS: "http://0.0.0.0:8092"
+#      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8091'
+#    networks:
+#      flask:
 
   redis:
     image: redis
