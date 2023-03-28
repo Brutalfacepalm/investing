@@ -75,7 +75,7 @@ def get_df_predictis(value):
 
 
 def generate_features_from_data(db2_client, db2_collection, ticker, currencies, commodities):
-    data = select_from_mongo(db2_client, db2_collection, ticker, currencies, commodities, 730)
+    data = select_from_mongo(db2_client, db2_collection, ticker, currencies, commodities, 369)
     print(data.shape)
     data['time'] = pd.to_datetime(data['time'])
     f_creator = FeatureCreator(data.copy())
