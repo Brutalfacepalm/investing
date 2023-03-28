@@ -103,8 +103,6 @@ services:
       - ./services/kafka:/home/app
     depends_on:
       - kafka_feature_worker
-    networks:
-      flask:
 
   kafka_feature_worker:
     build:
@@ -117,8 +115,6 @@ services:
       - ./services/kafka:/home/app
     depends_on:
       - kafka_predicts_worker
-    networks:
-      flask:
 
   kafka_predicts_worker:
     build:
@@ -131,8 +127,6 @@ services:
       - ./services/kafka:/home/app
     depends_on:
       - broker2
-    networks:
-      flask:
 
 
   nginx:
