@@ -187,50 +187,48 @@ class FeatureCreator:
         # df['resist_20_mean-close'] = df['resist_20_mean'] - df['close'] + self.eps
         #
         # for hour in self.hours_general_points:
-        #     new_hour = hour + 20
-        #     if hour >= 80:
-        #         new_hour += 20
-        #
-        #     df[f'support_{new_hour}'] = df[f'support_{hour}'].rolling(hour).min()
-        #     df[f'support_{new_hour}_mean'] = df[f'support_{hour}'].rolling(hour).mean()
-        #     df[f'resist_{new_hour}'] = df[f'resist_{hour}'].rolling(hour).max()
-        #     df[f'resist_{new_hour}_mean'] = df[f'resist_{hour}'].rolling(hour).mean()
+        #     df[f'support_{hour * 2}'] = df[f'support_{hour}'].rolling(hour).min()
+        #     df[f'support_{hour * 2}_mean'] = df[f'support_{hour}'].rolling(hour).mean()
+        #     df[f'resist_{hour * 2}'] = df[f'resist_{hour}'].rolling(hour).max()
+        #     df[f'resist_{hour * 2}_mean'] = df[f'resist_{hour}'].rolling(hour).mean()
         #
         #     if hour >= 80:
-        #         df[f'support_{new_hour}'].fillna(df[f'support_{hour}'], inplace=True)
-        #         df[f'support_{new_hour}_mean'].fillna(df[f'support_{hour}_mean'], inplace=True)
-        #         df[f'resist_{new_hour}'].fillna(df[f'resist_{hour}'], inplace=True)
-        #         df[f'resist_{new_hour}_mean'].fillna(df[f'resist_{hour}_mean'], inplace=True)
+        #         df[f'support_{hour * 2}'].fillna(df[f'support_{hour}'], inplace=True)
+        #         df[f'support_{hour * 2}_mean'].fillna(df[f'support_{hour}_mean'], inplace=True)
+        #         df[f'resist_{hour * 2}'].fillna(df[f'resist_{hour}'], inplace=True)
+        #         df[f'resist_{hour * 2}_mean'].fillna(df[f'resist_{hour}_mean'], inplace=True)
         #
-        #     df[f'support_{new_hour}-close'] = df[f'support_{new_hour}'] - df['close'] + self.eps
-        #     df[f'support_{new_hour}_mean-close'] = df[f'support_{new_hour}_mean'] - df['close'] + self.eps
-        #     df[f'resist_{new_hour}-close'] = df[f'resist_{new_hour}'] - df['close'] + self.eps
-        #     df[f'resist_{new_hour}_mean-close'] = df[f'resist_{new_hour}_mean'] - df['close'] + self.eps
-        df['support_20'] = df['close'].rolling(20).min()
-        df['support_20_mean'] = df['close'].rolling(20).mean()
-        df['resist_20'] = df['close'].rolling(20).max()
-        df['resist_20_mean'] = df['close'].rolling(20).mean()
-        df['support_20-close'] = df['support_20'] - df['close'] + self.eps
-        df['support_20_mean-close'] = df['support_20_mean'] - df['close'] + self.eps
-        df['resist_20-close'] = df['resist_20'] - df['close'] + self.eps
-        df['resist_20_mean-close'] = df['resist_20_mean'] - df['close'] + self.eps
+        #     df[f'support_{hour * 2}-close'] = df[f'support_{hour * 2}'] - df['close'] + self.eps
+        #     df[f'support_{hour * 2}_mean-close'] = df[f'support_{hour * 2}_mean'] - df['close'] + self.eps
+        #     df[f'resist_{hour * 2}-close'] = df[f'resist_{hour * 2}'] - df['close'] + self.eps
+        #     df[f'resist_{hour * 2}_mean-close'] = df[f'resist_{hour * 2}_mean'] - df['close'] + self.eps
+        # return df
+        df['support_80'] = df['close'].rolling(80).min()
+        df['support_80_mean'] = df['close'].rolling(80).mean()
+        df['resist_80'] = df['close'].rolling(80).max()
+        df['resist_80_mean'] = df['close'].rolling(80).mean()
+        df['support_80-close'] = df['support_80'] - df['close'] + self.eps
+        df['support_80_mean-close'] = df['support_80_mean'] - df['close'] + self.eps
+        df['resist_80-close'] = df['resist_80'] - df['close'] + self.eps
+        df['resist_80_mean-close'] = df['resist_80_mean'] - df['close'] + self.eps
 
         for hour in self.hours_general_points:
-            df[f'support_{hour * 2}'] = df[f'support_{hour}'].rolling(hour).min()
-            df[f'support_{hour * 2}_mean'] = df[f'support_{hour}'].rolling(hour).mean()
-            df[f'resist_{hour * 2}'] = df[f'resist_{hour}'].rolling(hour).max()
-            df[f'resist_{hour * 2}_mean'] = df[f'resist_{hour}'].rolling(hour).mean()
+            next_hour = hour + 40
+            df[f'support_{next_hour}'] = df[f'support_{hour}'].rolling(hour).min()
+            df[f'support_{next_hour}_mean'] = df[f'support_{hour}'].rolling(hour).mean()
+            df[f'resist_{next_hour}'] = df[f'resist_{hour}'].rolling(hour).max()
+            df[f'resist_{next_hour}_mean'] = df[f'resist_{hour}'].rolling(hour).mean()
 
             if hour >= 80:
-                df[f'support_{hour * 2}'].fillna(df[f'support_{hour}'], inplace=True)
-                df[f'support_{hour * 2}_mean'].fillna(df[f'support_{hour}_mean'], inplace=True)
-                df[f'resist_{hour * 2}'].fillna(df[f'resist_{hour}'], inplace=True)
-                df[f'resist_{hour * 2}_mean'].fillna(df[f'resist_{hour}_mean'], inplace=True)
+                df[f'support_{next_hour}'].fillna(df[f'support_{hour}'], inplace=True)
+                df[f'support_{next_hour}_mean'].fillna(df[f'support_{hour}_mean'], inplace=True)
+                df[f'resist_{next_hour}'].fillna(df[f'resist_{hour}'], inplace=True)
+                df[f'resist_{next_hour}_mean'].fillna(df[f'resist_{hour}_mean'], inplace=True)
 
-            df[f'support_{hour * 2}-close'] = df[f'support_{hour * 2}'] - df['close'] + self.eps
-            df[f'support_{hour * 2}_mean-close'] = df[f'support_{hour * 2}_mean'] - df['close'] + self.eps
-            df[f'resist_{hour * 2}-close'] = df[f'resist_{hour * 2}'] - df['close'] + self.eps
-            df[f'resist_{hour * 2}_mean-close'] = df[f'resist_{hour * 2}_mean'] - df['close'] + self.eps
+            df[f'support_{next_hour}-close'] = df[f'support_{next_hour}'] - df['close'] + self.eps
+            df[f'support_{next_hour}_mean-close'] = df[f'support_{next_hour}_mean'] - df['close'] + self.eps
+            df[f'resist_{next_hour}-close'] = df[f'resist_{next_hour}'] - df['close'] + self.eps
+            df[f'resist_{next_hour}_mean-close'] = df[f'resist_{next_hour}_mean'] - df['close'] + self.eps
         return df
 
     def trend(self, df):

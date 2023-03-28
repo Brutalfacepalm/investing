@@ -285,7 +285,7 @@ for ticker in ['sber', 'gazp', 'lkoh']:
             topic='data',
             producer_function=fn_produce_to_topic_data,
             producer_function_args=(ticker, get_correct_data.output),
-            kafka_config={'bootstrap.servers': 'broker1:29092'},
+            kafka_config={'bootstrap.servers': '192.168.1.13:39092'},
             # op_kwargs={'ticker': ticker,
             #            'parse_data': get_correct_data.output}
         )

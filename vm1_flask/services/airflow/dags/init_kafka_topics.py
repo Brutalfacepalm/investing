@@ -8,7 +8,7 @@ import json
 
 def fn_topics_create():
     admin_client = AdminClient({
-        "bootstrap.servers": "broker1:29092"
+        "bootstrap.servers": "192.168.1.13:39092"
     })
 
     topic_list = []
@@ -23,7 +23,7 @@ def fn_topics_create():
         f.result()
 
 connection_config = {
-    "bootstrap.servers": 'broker1:29092'
+    "bootstrap.servers": '192.168.1.13:39092'
 }
 
 
