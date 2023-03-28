@@ -130,9 +130,7 @@ services:
     volumes:
       - ./services/kafka:/home/app
     depends_on:
-      - airflow-webserver
-      - broker1
-      - zookeeper
+      - broker2
     networks:
       flask:
 
