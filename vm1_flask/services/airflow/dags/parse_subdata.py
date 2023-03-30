@@ -273,7 +273,7 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
 with DAG(
         dag_id='004_parse_subdata',
         default_args=default_args,
-        schedule_interval='0 10-18 * * 1-5',
+        schedule_interval='0 10-22 * * 1-5',
         catchup=False
 ) as dag:
     postgres_last_date = PythonOperator(

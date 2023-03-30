@@ -140,7 +140,7 @@ def fn_get_endpoint(execution_date, **context):
                                            list(zip(*[list(v.values()) for v in meta])))))
 
     curr_df = meta[(meta['code'] == code) &
-                   (meta['market'].isin([1]))]
+                   (meta['market'].isin([1, 25]))]
     em = curr_df['id'].values[0]
     market = curr_df['market'].values[0]
 
@@ -225,12 +225,13 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retries': 30,
                 'retry_delay': duration(seconds=15),}
 
-
-for ticker in ['sber', 'gazp', 'lkoh', 'aapl']:
+moex = ['sber', 'gazp', 'lkoh']
+bats =['aapl']
+for ticker in moex + bats:
     with DAG(
             dag_id=f'005_{ticker}_parse_data',
             default_args=default_args,
-            schedule_interval='0 10-18 * * 1-5',
+            schedule_interval='0 10-18 * * 1-5' if ticker in moex else '0 16-22 * * 1-5',
             catchup=False,
             params={'ticker': ticker}
     ) as dag:
