@@ -359,7 +359,7 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retries': 5,
                 'retry_delay': duration(seconds=15), }
 
-for ticker in ['sber', 'gazp', 'lkoh']:
+for ticker in ['sber', 'gazp', 'lkoh', 'aapl']:
     with DAG(
             dag_id=f'003_{ticker}_init',
             default_args=default_args,

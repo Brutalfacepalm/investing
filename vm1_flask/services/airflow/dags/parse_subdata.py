@@ -83,14 +83,18 @@ class SubDataHttpOperator(SimpleHttpOperator):
         responses = {}
         for ticker, end in json.loads(self.endpoint).items():
             response = http.run(end, self.data, self.headers, self.extra_options)
+            print(response.status_code)
             if self.log_response:
+                self.log.info(response.status_code)
                 self.log.info(response.text)
             # if context['execution_date'].in_timezone(tz='Europe/Moscow').strftime('%Y%m%d,%H0000') not in response.text:
             #     raise AirflowException("Response check returned False.")
             if self.response_filter:
                 kwargs = determine_kwargs(self.response_filter, [response], context)
                 return self.response_filter(response, **kwargs)
-            responses[ticker] = (response.text)
+            if response.status_code == 200:
+                responses[ticker] = (response.text)
+            response.close()
         return json.dumps(responses)
 
 
@@ -227,7 +231,7 @@ def fn_get_correct_data(execution_date, **context):
             h_datetime = from_format(f'{data} {time}', 'YYYYMMDD HH0000', tz='Europe/Moscow')
             if last_date_time < h_datetime:
                 break
-            if h_datetime.hour >= 10 and h_datetime.hour < 19:
+            if h_datetime.hour >= 10 and h_datetime.hour < 23:
                 c = float(hourly[4])
                 ticker_hourly_data[ticker].append([h_datetime.strftime('%Y-%m-%d %H:00:00'), c])
     return json.dumps(ticker_hourly_data)

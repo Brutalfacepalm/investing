@@ -184,7 +184,7 @@ def fn_get_correct_data(execution_date, **context):
         h_datetime = from_format(f'{data} {time}', 'YYYYMMDD HH0000', tz='Europe/Moscow')
         if last_date_time < h_datetime:
             break
-        if h_datetime.hour >= 10 and h_datetime.hour < 19:
+        if h_datetime.hour >= 10 and h_datetime.hour < 23:
             o, h, l, c, v = float(hourly[4]), float(hourly[5]), float(hourly[6]), float(hourly[7]), int(hourly[8])
             ticker_hourly_data.append([h_datetime.strftime('%Y-%m-%d %H:00:00'), o, h, l, c, v])
     return json.dumps(ticker_hourly_data)
@@ -226,7 +226,7 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retry_delay': duration(seconds=15),}
 
 
-for ticker in ['sber', 'gazp', 'lkoh']:
+for ticker in ['sber', 'gazp', 'lkoh', 'aapl']:
     with DAG(
             dag_id=f'005_{ticker}_parse_data',
             default_args=default_args,

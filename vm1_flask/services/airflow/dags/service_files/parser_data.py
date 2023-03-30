@@ -91,20 +91,21 @@ class Parser:
             if curr_df.empty:
                 return None
 
-            em = curr_df['id'].values[0]
-            market = curr_df['market'].values[0]
+            # self.em = curr_df['id'].values[0]
+            # self.market = curr_df['market'].values[0]
 
 
         else:
             code = self.ticker
             curr_df = self.meta_information[(self.meta_information['code'] == self.ticker) &
-                                            (self.meta_information['market'].isin([1, 45]))]
-            em = curr_df['id'].values[0]
-            market = curr_df['market'].values[0]
+                                            (self.meta_information['market'].isin([1, 25, 45]))]
+
+        self.em = curr_df['id'].values[0]
+        self.market = curr_df['market'].values[0]
 
         params = urlencode([
-                               ('market', market),
-                               ('em', em),
+                               ('market', self.market),
+                               ('em', self.em),
                                ('code', code),
                                ('apply', APPLY),
                                ('df', start_date.day),
@@ -154,7 +155,15 @@ class Parser:
             date_time = pd.Timestamp(datetime(y, m, d, h, 0, 0), tz='Europe/Moscow')
             if self.last_date_time < date_time:
                 break
-            if date_time.hour >= 10 and date_time.hour < 19:
+            if self.market in [14, 25, 45]:
+                start_time = 10
+                end_time = 23
+            else:
+                start_time = 10
+                end_time = 19
+
+
+            if date_time.hour >= start_time and date_time.hour < end_time:
                 if self.subdata:
                     self.ticker_horly_data.append([date_time.strftime('%Y-%m-%d %H:00:00'),
                                                    float(h_data[7])])

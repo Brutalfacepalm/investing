@@ -72,7 +72,7 @@ def fn_mongodb_create_collection(**context):
             if t in db.list_collection_names():
                 db.drop_collection(t)
 
-            db.create_collection(name=t, capped=True, size=2128 * 1680, max=1680)
+            db.create_collection(name=t, capped=True, size=2128 * 1680 * 2, max=1680 * 2)
             collection = db[t]
             collection.create_index([("time", pymongo.DESCENDING)],
                                     background=True,

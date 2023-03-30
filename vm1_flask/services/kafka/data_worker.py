@@ -191,7 +191,7 @@ def select_from_mongo(db2_client, db2_collection, ticker, currencies, commoditie
             sbdt_db2 = list(cursor.find(sort=[('time', -1)],
                                         projection={'_id': False,
                                                     'time': True,
-                                                    'close': True}).limit(len_select))[::-1]
+                                                    'close': True}).limit(len_select * 2))[::-1]
             sbdt_df = pd.DataFrame.from_records(sbdt_db2)
             data_for_features = data_for_features.merge(sbdt_df, how='left', on='time', suffixes=('', f'_s{k + 1}'))
 

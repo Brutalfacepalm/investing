@@ -483,7 +483,7 @@ class FeatureCreator:
         return df
 
     def generate_feature(self):
-        self.df = self.df.loc[self.df['time'].dt.hour.between(10, 18)]
+        self.df = self.df.loc[self.df['time'].dt.hour.between(10, 22)]
         self.df.iloc[:, 1:] = np.log(self.df.iloc[:, 1:])
 
         # from time import time
