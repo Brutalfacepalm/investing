@@ -126,6 +126,7 @@ class Parser:
         return url_period
 
     def get_data_period(self, url):
+        print(url)
         query = Request(url)
         query.add_header('User-Agent', self.headers['User-Agent'])
 
@@ -155,7 +156,7 @@ class Parser:
             date_time = pd.Timestamp(datetime(y, m, d, h, 0, 0), tz='Europe/Moscow')
             if self.last_date_time < date_time:
                 break
-            if self.market in [14, 25, 45]:
+            if self.market in [14, 17, 25, 45]:
                 start_time = 10
                 end_time = 23
             else:
