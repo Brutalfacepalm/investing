@@ -335,7 +335,7 @@ def fn_get_predictions(**context):
         # lh = np.ones_like(times) * 0.87
         """TO DO PREDICTION PROCESS"""
         to_insert = [dict(zip(['time', 'open', 'high', 'low', 'close'], t_d)) for t_d in
-                     list(zip(times, opens_predict, highs_predict, lows_predict, closes_predict))]
+                     list(zip(times_predict, opens_predict, highs_predict, lows_predict, closes_predict))]
         return to_insert
     except Exception as e:
         print(f"Error connecting to MongoDB -- {e}")
@@ -359,7 +359,9 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retries': 5,
                 'retry_delay': duration(seconds=15), }
 
-for ticker in ['sber', 'gazp', 'lkoh', 'aapl']:
+moex = ['sber', 'gazp', 'lkoh']
+bats = ['aapl', 'fdx', 'ibm']
+for ticker in moex + bats:
     with DAG(
             dag_id=f'003_{ticker}_init',
             default_args=default_args,

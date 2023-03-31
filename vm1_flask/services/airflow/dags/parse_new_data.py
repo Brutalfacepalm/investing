@@ -143,6 +143,8 @@ def fn_get_endpoint(execution_date, **context):
                    (meta['market'].isin([1, 25]))]
     em = curr_df['id'].values[0]
     market = curr_df['market'].values[0]
+    context['task_instance'].xcom_push(key='market',
+                                       value=str(market))
 
     head = f'{code}_{date_start.strftime("%d%m%y")}_{date_end.strftime("%d%m%y")}'
     endpoint = head + '.txt?' + urlencode([('market', market),
@@ -175,6 +177,7 @@ def fn_get_endpoint(execution_date, **context):
 
 def fn_get_correct_data(execution_date, **context):
     http_data = context['http_data']
+    market = int(context['task_instance'].xcom_pull(task_ids='get_endpoint', key='market'))
     ticker_hourly_data = []
     last_date_time = execution_date
     for hourly in http_data.strip().split('\n'):
@@ -184,7 +187,14 @@ def fn_get_correct_data(execution_date, **context):
         h_datetime = from_format(f'{data} {time}', 'YYYYMMDD HH0000', tz='Europe/Moscow')
         if last_date_time < h_datetime:
             break
-        if h_datetime.hour >= 10 and h_datetime.hour < 23:
+
+        if market in [14, 17, 25, 45]:
+            start_time = 10
+            end_time = 23
+        else:
+            start_time = 10
+            end_time = 19
+        if h_datetime.hour >= start_time and h_datetime.hour < end_time:
             o, h, l, c, v = float(hourly[4]), float(hourly[5]), float(hourly[6]), float(hourly[7]), int(hourly[8])
             ticker_hourly_data.append([h_datetime.strftime('%Y-%m-%d %H:00:00'), o, h, l, c, v])
     return json.dumps(ticker_hourly_data)
@@ -226,7 +236,7 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retry_delay': duration(seconds=15),}
 
 moex = ['sber', 'gazp', 'lkoh']
-bats =['aapl']
+bats = ['aapl', 'fdx', 'ibm']
 for ticker in moex + bats:
     with DAG(
             dag_id=f'005_{ticker}_parse_data',

@@ -80,9 +80,7 @@ def index():
     # print(type(graphJSON))
 
     response = {'tickers': ['SBER', 'GAZP', 'LUKH', 'GMNK', 'SNGS'],
-                'graphs': [('g1', '1d', '1 days', graphJSON),
-                           ('g3', '3d', '3 days', graphJSON),
-                           ('g7', '7d', '7 days', graphJSON)],
+                'graphs': [('g1', '1d', '1 days', graphJSON)],
                 }
     return render_template('index.html', response=response)
 
