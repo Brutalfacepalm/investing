@@ -9,7 +9,7 @@ from airflow.sensors.external_task_sensor import ExternalTaskSensor
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.mongo.hooks.mongo import MongoHook
 from pymongo.write_concern import WriteConcern
-from service_files.feature_creator import FeatureCreator
+from service_files.feature_creator_old_2 import FeatureCreator
 import json
 
 

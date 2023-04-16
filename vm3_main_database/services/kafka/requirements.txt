@@ -4,8 +4,10 @@ setuptools
 click==8.1.3
 pandas
 numpy
+numba
 sqlalchemy
 pymongo
 kafka-python
 holidays
 psycopg2
+torch

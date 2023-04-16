@@ -100,6 +100,7 @@ def fn_parse_subdata(execution_date, **context):
     meta = json.loads(context['meta'])
     meta = pd.DataFrame.from_dict(dict(zip(['id', 'name', 'code', 'market', 'url'],
                                            list(zip(*[list(v.values()) for v in meta])))))
+    meta = meta[meta['market'].isin([5, 14, 17, 24, 45])]
     subdata = {}
     for t in currencies:
         date_start = '01.01.2012 00:00:00'
@@ -122,8 +123,8 @@ def fn_parse_subdata(execution_date, **context):
         parser_ticker = Parser(t.upper(),
                                date_start,
                                date_end,
-                               split_period='quarter',
-                               is_feature=True,
+                               split_period='year',
+                               is_feature=False,
                                meta_df=meta,
                                subdata=True)
         data_as_df = parser_ticker.parse()
@@ -153,14 +154,6 @@ def fn_postgres_load_subdata(**context):
     hook = SkipConflictPostgresHook(postgres_conn_id=context['postgres_conn_id'])
     data = json.loads(context['parse_data'])
     for k, v in data.items():
-        # if len(v) > 5000:
-        #     for start_i in range(0, len(v), 5000):
-        #         end_i = min(start_i + 5000, len(v))
-        #         batch_v = v[start_i: end_i]
-        #         hook.insert_rows(table=k,
-        #                          rows=batch_v,
-        #                          resolve_conflict='time')
-        # else:
         hook.insert_rows(table=k,
                          rows=v,
                          resolve_conflict='time')

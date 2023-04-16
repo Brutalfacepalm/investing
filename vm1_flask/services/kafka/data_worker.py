@@ -5,11 +5,14 @@ import numpy as np
 import pandas.io.sql as psql
 import json
 import click
+import torch
+
 from pymongo import MongoClient
 from pymongo.write_concern import WriteConcern
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert
 from feature_creator import FeatureCreator
+from predictioner import PredictorPredict
 from datetime import datetime, timedelta
 
 
@@ -92,40 +95,20 @@ def generate_features_from_data(db2_client, db2_collection, ticker, currencies, 
 
 def generate_predictions_from_features(db2_client, db2_collection, ticker):
     print(ticker)
-    data = select_from_mongo(db2_client, db2_collection, f'{ticker}_features', None, None, 57)
-    # times = pd.to_datetime(data.iloc[-30:, 0])# + pd.to_timedelta(1, unit='days')
-    times, opens, highs, lows, closes = data.iloc[-30:, 0], data.iloc[-30:, 1], data.iloc[-30:, 2], data.iloc[-30:, 3], data.iloc[-30:, 4]
-    times_predict = []
+    data = select_from_mongo(db2_client, db2_collection, f'{ticker}_features', None, None, 65)
 
-    for t in times:
-        if type(t) == str:
-            t = datetime.strptime(t, '%Y-%m-%d %H:00:00')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    predictioner = PredictorPredict(device,
+                                    seq_len=54,
+                                    target_mode='abs',
+                                    log=False)
+    res = predictioner.predict(data, 'model.mdl', 'scaler.pkl')
+    to_insert = [{'time': k.strftime('%Y-%m-%d %H:00:00'),
+                  'open': v[0],
+                  'high': v[1],
+                  'low': v[2],
+                  'close': v[3]} for k, v in res.items()]
 
-        if t.isoweekday() == 5:
-            t += timedelta(days=3)
-        else:
-            t += timedelta(days=1)
-        times_predict.append(t.strftime('%Y-%m-%d %H:00:00'))
-
-    opens_predict = np.exp(np.array(opens)) + np.random.normal(3, 1, 30)
-    highs_predict = np.exp(np.array(highs)) + np.random.normal(3, 1, 30)
-    lows_predict = np.exp(np.array(lows)) + np.random.normal(3, 1, 30)
-    closes_predict = np.exp(np.array(closes)) + np.random.normal(3, 1, 30)
-
-    # t_delta = np.ones_like(times) * 11
-    # lh = np.ones_like(times) * 0.87
-    """TO DO PREDICTION PROCESS"""
-    to_insert = [dict(zip(['time', 'open', 'high', 'low', 'close'], t_d)) for t_d in
-                 list(zip(times_predict, opens_predict, highs_predict, lows_predict, closes_predict))]
-
-
-    # times = data.iloc[-30:, 0]
-    # closes = np.exp(data.iloc[-30:, 4]) * 0.005
-    # t_delta = (np.ones(times.shape) * 9).astype(int).tolist()
-    # lh = np.ones(times.shape) * 0.87
-
-    # to_insert = [dict(zip(['time', 'predict', 't_delta', 'lh'], t_d)) for t_d in
-    #              list(zip(times, closes, t_delta, lh))]
     to_topic_value = json.dumps(to_insert).encode()
     to_topic_key = json.dumps(ticker).encode()
 

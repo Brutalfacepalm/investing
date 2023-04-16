@@ -21,12 +21,12 @@ with open('./dags/service_files/features.json', 'r+') as f:
 
 def fn_parse_meta():
     meta = ExporterMeta()
-    df = meta.lookup(market=[1, 14, 17, 25, 45]).reset_index()
-    df_cleaned = df[df['market'] == 1].groupby('code').agg(lambda x: set([i for i in x]))
+    df = meta.lookup(market=[1, 5, 14, 17, 24, 25, 45]).reset_index()
+    df_cleaned = df[df['market'].isin([1])].groupby('code').agg(lambda x: set([i for i in x]))
     df_cleaned = df.merge(df_cleaned['url'].apply(lambda x: min(x, key=len)).reset_index(), on=['code', 'url'])
     df_cleaned = pd.concat([df_cleaned,
-                            df[(df['market'] == 45) & df['code'].isin(currencies)],
-                            df[df['market'].isin([14, 17, 25])]])
+                            df[(df['market'] == 5) & df['code'].isin(currencies)],
+                            df[df['market'].isin([14, 17, 24, 25])]])
     df_cleaned.to_csv('./dags/service_files/meta_tickers.csv')
     return json.dumps(df_cleaned.to_numpy().tolist())
 

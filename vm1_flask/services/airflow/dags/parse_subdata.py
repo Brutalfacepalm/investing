@@ -145,9 +145,11 @@ def fn_get_endpoint(execution_date, **context):
     features_codes = dict(zip(range(12),
                               ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']))
     short_code = {'BR': 'BR',
+                  'BZ': 'BZ',
                   'NG': 'NG',
                   'PT': 'PLT',
                   'GD': 'GOLD',
+                  'GC': 'GC',
                   'SV': 'SILV',
                   }
     date_start = min(from_format(context['postgres_last_date'], 'YYYY-MM-DD HH:00:00'),
@@ -163,7 +165,7 @@ def fn_get_endpoint(execution_date, **context):
     for t in context['currencies']:
         code = t.upper()
         curr_df = meta[(meta['code'] == code) &
-                       (meta['market'].isin([45]))]
+                       (meta['market'].isin([5, 45]))]
         em = curr_df['id'].values[0]
         market = curr_df['market'].values[0]
 

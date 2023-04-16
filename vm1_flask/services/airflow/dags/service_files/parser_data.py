@@ -36,9 +36,11 @@ class Parser:
         self.is_feature = is_feature
         self.subdata = subdata
         self.short_code = {'BR': 'BR',
+                           'BZ': 'BZ',
                            'NG': 'NG',
                            'PT': 'PLT',
                            'GD': 'GOLD',
+                           'GC': 'GC',
                            'SV': 'SILV',
                            }
         self.features_codes = dict(zip(range(12),
@@ -98,7 +100,7 @@ class Parser:
         else:
             code = self.ticker
             curr_df = self.meta_information[(self.meta_information['code'] == self.ticker) &
-                                            (self.meta_information['market'].isin([1, 25, 45]))]
+                                            (self.meta_information['market'].isin([1, 5, 24, 25, 45]))]
 
         self.em = curr_df['id'].values[0]
         self.market = curr_df['market'].values[0]
@@ -156,7 +158,7 @@ class Parser:
             date_time = pd.Timestamp(datetime(y, m, d, h, 0, 0), tz='Europe/Moscow')
             if self.last_date_time < date_time:
                 break
-            if self.market in [14, 17, 25, 45]:
+            if self.market in [5, 14, 17, 24, 25, 45]:
                 start_time = 10
                 end_time = 23
             else:

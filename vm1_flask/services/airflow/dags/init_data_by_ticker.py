@@ -8,10 +8,13 @@ from airflow.providers.mongo.hooks.mongo import MongoHook
 import pandas as pd
 import numpy as np
 import pymongo
+import torch
+import pickle
 from pymongo.write_concern import WriteConcern
 from contextlib import closing
 
 from service_files.feature_creator import FeatureCreator
+from service_files.predictioner import PredictorPredict
 from service_files.parser_data import Parser
 import json
 
@@ -102,6 +105,8 @@ def fn_parse_data(execution_date, **context):
     meta = json.loads(context['meta'])
     meta = pd.DataFrame.from_dict(dict(zip(['id', 'name', 'code', 'market', 'url'],
                                            list(zip(*[list(v.values()) for v in meta])))))
+    meta = meta[meta['market'].isin([1, 25])]
+
     t = context['params']['table']
     date_start = '01.01.2012 00:00:00'
     date_end = execution_date.in_timezone("Europe/Moscow").add(days=-1).strftime("%d.%m.%Y 23:00:00")
@@ -133,14 +138,6 @@ def fn_postgres_load_data(**context):
     """ TO DO IN PostgresOperator and INSERT all new data """
     hook = SkipConflictPostgresHook(postgres_conn_id=context['postgres_conn_id'])
     data = json.loads(context['parse_data'])
-    # if len(data) > 5000:
-    #     for start_i in range(0, len(data), 5000):
-    #         end_i = min(start_i + 5000, len(data))
-    #         batch_data = data[start_i: end_i]
-    #         hook.insert_rows(table=context['table'],
-    #                          rows=batch_data,
-    #                          resolve_conflict='time')
-    # else:
     hook.insert_rows(table=context['table'],
                      rows=data,
                      resolve_conflict='time')
@@ -309,33 +306,46 @@ def fn_get_predictions(**context):
         client = hook.get_conn()
         db_f = client.investing[context['f_table']]
         request_mongo = list(db_f.find(sort=[('time', -1)],
-                                       projection={'_id': False}).limit(218))[::-1]
+                                       projection={'_id': False}))[::-1]
         client.close()
 
         """TO DO PREDICTION PROCESS"""
         data = pd.DataFrame.from_records(request_mongo)
-        times, opens, highs, lows, closes = data.iloc[-200:, 0], data.iloc[-200:, 1], data.iloc[-200:, 2], data.iloc[-200:, 3], data.iloc[-200:, 4]
-        times_predict = []
+        # times, opens, highs, lows, closes = data.iloc[:, 0], data.iloc[:, 1], data.iloc[:, 2], data.iloc[:, 3], data.iloc[:, 4]
+        # times_predict = []
 
-        # times = data.iloc[-200:, 0].values
-        for t in times[-200:]:
-            t = from_format(t, 'YYYY-MM-DD HH:00:00', tz='Europe/Moscow')
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        predictioner = PredictorPredict(device,
+                                        seq_len=54,
+                                        target_mode='abs',
+                                        log=False)
 
-            if t.isoweekday() == 5:
-                t += timedelta(days=3)
-            else:
-                t += timedelta(days=1)
-            times_predict.append(t.strftime('%Y-%m-%d %H:00:00'))
+        res = predictioner.predict(data, './dags/service_files/model.mdl', './dags/service_files/scaler.pkl')
+        to_insert = [{'time': k.strftime('%Y-%m-%d %H:00:00'),
+                      'open': v[0],
+                      'high': v[1],
+                      'low': v[2],
+                      'close': v[3]} for k, v in res.items()]
 
-        opens_predict = np.exp(np.array(opens)) + np.random.normal(3, 1, 200)
-        highs_predict = np.exp(np.array(highs)) + np.random.normal(3, 1, 200)
-        lows_predict = np.exp(np.array(lows)) + np.random.normal(3, 1, 200)
-        closes_predict = np.exp(np.array(closes)) + np.random.normal(3, 1, 200)
-        # t_delta = np.ones_like(times) * 11
-        # lh = np.ones_like(times) * 0.87
-        """TO DO PREDICTION PROCESS"""
-        to_insert = [dict(zip(['time', 'open', 'high', 'low', 'close'], t_d)) for t_d in
-                     list(zip(times_predict, opens_predict, highs_predict, lows_predict, closes_predict))]
+        #
+        # for t in times[-200:]:
+        #     t = from_format(t, 'YYYY-MM-DD HH:00:00', tz='Europe/Moscow')
+        #
+        #     if t.isoweekday() == 5:
+        #         t += timedelta(days=3)
+        #     else:
+        #         t += timedelta(days=1)
+        #     times_predict.append(t.strftime('%Y-%m-%d %H:00:00'))
+        #
+        # opens_predict = np.exp(np.array(opens)) + np.random.normal(3, 1, 200)
+        # highs_predict = np.exp(np.array(highs)) + np.random.normal(3, 1, 200)
+        # lows_predict = np.exp(np.array(lows)) + np.random.normal(3, 1, 200)
+        # closes_predict = np.exp(np.array(closes)) + np.random.normal(3, 1, 200)
+        # # t_delta = np.ones_like(times) * 11
+        # # lh = np.ones_like(times) * 0.87
+        # """TO DO PREDICTION PROCESS"""
+        # to_insert = [dict(zip(['time', 'open', 'high', 'low', 'close'], t_d)) for t_d in
+        #              list(zip(times_predict, opens_predict, highs_predict, lows_predict, closes_predict))]
         return to_insert
     except Exception as e:
         print(f"Error connecting to MongoDB -- {e}")
@@ -360,7 +370,7 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retry_delay': duration(seconds=15), }
 
 moex = ['sber', 'gazp', 'lkoh']
-bats = ['aapl', 'fdx', 'ibm']
+bats = ['aapl', 'fdx', 'ibm', 'gs']
 for ticker in moex + bats:
     with DAG(
             dag_id=f'003_{ticker}_init',

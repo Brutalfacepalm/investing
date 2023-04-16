@@ -138,7 +138,6 @@ def fn_get_endpoint(execution_date, **context):
     meta = json.loads(context['meta'])
     meta = pd.DataFrame.from_dict(dict(zip(['id', 'name', 'code', 'market', 'url'],
                                            list(zip(*[list(v.values()) for v in meta])))))
-
     curr_df = meta[(meta['code'] == code) &
                    (meta['market'].isin([1, 25]))]
     em = curr_df['id'].values[0]
@@ -188,7 +187,7 @@ def fn_get_correct_data(execution_date, **context):
         if last_date_time < h_datetime:
             break
 
-        if market in [14, 17, 25, 45]:
+        if market in [5, 14, 17, 24, 25, 45]:
             start_time = 10
             end_time = 23
         else:
@@ -236,7 +235,7 @@ default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retry_delay': duration(seconds=15),}
 
 moex = ['sber', 'gazp', 'lkoh']
-bats = ['aapl', 'fdx', 'ibm']
+bats = ['aapl', 'fdx', 'ibm', 'gs']
 for ticker in moex + bats:
     with DAG(
             dag_id=f'005_{ticker}_parse_data',

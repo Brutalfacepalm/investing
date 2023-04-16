@@ -13,6 +13,9 @@ RUN pip install confluent-kafka
 RUN pip install airflow-provider-kafka==0.2.2
 RUN pip install apache-airflow-providers-mongo==3.0.0
 RUN pip install holidays
+RUN pip install numba
+RUN pip install torch
+RUN pip install scikit-learn
 RUN pip install azure-mgmt-compute
 RUN pip install azure-mgmt-storage
 RUN pip install azure-mgmt-resource
