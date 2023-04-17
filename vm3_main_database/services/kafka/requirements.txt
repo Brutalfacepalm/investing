@@ -11,3 +11,4 @@ kafka-python
 holidays
 psycopg2
 torch
+scikit-learn
