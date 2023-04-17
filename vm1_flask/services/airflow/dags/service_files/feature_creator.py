@@ -513,12 +513,15 @@ class FeatureCreator:
 
         return df
 
-    def generate_feature(self):
+    def generate_feature(self, do_clear=False):
         self.ru_holidays = holidays.RU(years=range(self.df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.min(),
-                                                   self.df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.max() + 1))
+                                                   self.df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.max() + 2))
         print(self.ru_holidays)
 
-        self.df = self.clear_df(self.df)
+        if do_clear:
+            self.df = self.clear_df(self.df)
+        else:
+            self.df = [self.df]
 
         self.df_feature = []
 

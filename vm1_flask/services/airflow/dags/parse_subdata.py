@@ -184,17 +184,17 @@ def fn_get_endpoint(execution_date, **context):
                                      ('datf', 4), ('at', 0)])
         endpoints[t] = endpoint
     for t in context['features']:
-        ticker = t.upper()
+        code = t.upper()
 
-        m = (date_start.month // 3 + 1) * 3 % 15 + ((date_start.month // 3 + 1) * 3 // 15) * 3
+        # m = (date_start.month // 3 + 1) * 3 % 15 + ((date_start.month // 3 + 1) * 3 // 15) * 3
+        #
+        # code = f"{ticker}{features_codes[m - 1]}{date_start.add(months=1).year % 10}"
+        # name = f"{short_code[ticker]}-{m}.{date_start.add(months=1).strftime('%y')}"
 
-        code = f"{ticker}{features_codes[m - 1]}{date_start.add(months=1).year % 10}"
-        name = f"{short_code[ticker]}-{m}.{date_start.add(months=1).strftime('%y')}"
-
-        print(date_start, date_start.month, m, code, name)
+        # print(date_start, date_start.month, m, code, name)
 
         curr_df = meta[(meta['code'] == code) &
-                       (meta['name'].str.contains(name))]
+                       (meta['market'].isin([24]))]
         if curr_df.empty:
             continue
 

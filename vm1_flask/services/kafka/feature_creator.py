@@ -431,11 +431,8 @@ class FeatureCreator:
         df['is_last_week'] = 0
         df.loc[df['week_of_year'] >= 50, 'is_last_week'] = 1
 
-        ru_holidays = holidays.RU(years=range(df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.min(),
-                                              df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.max() + 1))
-
         df['till_holidays'] = df['time'].apply(lambda x: min(
-            [(pd.Timestamp(h) - pd.Timestamp(x)).days for h in ru_holidays.keys() if
+            [(pd.Timestamp(h) - pd.Timestamp(x)).days for h in self.ru_holidays.keys() if
              pd.Timestamp(h) >= pd.Timestamp(x)])).values
         df['holidays_7'] = 0
         df.loc[df['till_holidays'] <= 7, 'holidays_7'] = 1
@@ -467,7 +464,7 @@ class FeatureCreator:
 
             extrimal_intervals.append(f'{start_date} - {end_date}')
 
-        df.drop(columns=['anomaly_tend'])
+        df.drop(columns=['anomaly_tend'], inplace=True)
         dataframes = []
         d2_ = copy(df)
 
@@ -482,7 +479,7 @@ class FeatureCreator:
 
     def generate_feature_one_df(self, df):
         df = df.loc[df['time'].dt.hour.between(10, 22)]
-        df.iloc[:, 1:] = np.log(df.iloc[:, 1:])
+        # df.iloc[:, 1:] = np.log(df.iloc[:, 1:])
 
         df = self.diff_and_div(df)
         df = self.gap(df)
@@ -516,8 +513,15 @@ class FeatureCreator:
 
         return df
 
-    def generate_feature(self):
-        self.df = self.clear_df(self.df)
+    def generate_feature(self, do_clear=False):
+        self.ru_holidays = holidays.RU(years=range(self.df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.min(),
+                                                   self.df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.max() + 2))
+        print(self.ru_holidays)
+
+        if do_clear:
+            self.df = self.clear_df(self.df)
+        else:
+            self.df = [self.df]
 
         self.df_feature = []
 
