@@ -78,12 +78,13 @@ def get_df_predictis(value):
 
 
 def generate_features_from_data(db2_client, db2_collection, ticker, currencies, commodities):
-    data = select_from_mongo(db2_client, db2_collection, ticker, currencies, commodities, 290)
+    data = select_from_mongo(db2_client, db2_collection, ticker, currencies, commodities, 300)
     print(data.shape)
     data['time'] = pd.to_datetime(data['time'])
     f_creator = FeatureCreator(data.copy())
     features = f_creator.generate_feature()
     features['time'] = features['time'].dt.strftime('%Y-%m-%d %H:00:00')
+    features = features.iloc[-20:, :]
     print(features.shape)
     to_insert = list(
         map(lambda x: dict(zip(['time', *[f'f{i}' for i in range(1, features.shape[1])]], x)), features.values))
