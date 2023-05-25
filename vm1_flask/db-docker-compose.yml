@@ -133,6 +133,7 @@ services:
     build: ./services/nginx
     container_name: db_nginx
     restart: always
+    environment:
       NGINX_CONFIG_PATH: 'db-nginx.conf'
     ports:
       - 5050:80
