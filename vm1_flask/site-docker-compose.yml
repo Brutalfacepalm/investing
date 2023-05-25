@@ -525,7 +525,7 @@ services:
     container_name: flask_nginx
     restart: on-failure
     volumes:
-      - .site-nginx.conf:/etc/nginx/nginx.conf
+      - ./services/nginx/site-nginx.conf:/etc/nginx/nginx.conf
       - static:/home/app/flask_app/static
 #    environment:
 #      NGINX_CONFIG_PATH: 'site-nginx.conf'

@@ -134,7 +134,7 @@ services:
     container_name: db_nginx
     restart: always
     volumes:
-      - .db-nginx.conf:/etc/nginx/nginx.conf
+      - ./services/nginx/db-nginx.conf:/etc/nginx/nginx.conf
 #    environment:
 #      NGINX_CONFIG_PATH: 'db-nginx.conf'
     ports:
