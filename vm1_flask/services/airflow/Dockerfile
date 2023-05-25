@@ -9,12 +9,13 @@ RUN apt-get update -y && apt-get install -y gcc && \
   cd ../ && rm -rf librdkafka
 USER airflow
 
-RUN pip install confluent-kafka
+RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
 RUN pip install apache-airflow-providers-mongo==3.0.0
-RUN pip install holidays
-RUN pip install numba
-RUN pip install torch
+RUN pip install holidays==0.14.2
+RUN pip install numba==0.56.4
+RUN pip install torch==2.0.1
+RUN pip install numpy==1.23.5
 RUN pip install scikit-learn
 RUN pip install azure-mgmt-compute
 RUN pip install azure-mgmt-storage

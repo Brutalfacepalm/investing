@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "investing_db"
+      POSTGRES_USER: "investing_db"
+      POSTGRES_DB: "investing_db"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      postgres:
+        ipv4_address: 172.16.2.5
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "investing_db@test.com"
+      PGADMIN_DEFAULT_PASSWORD: "investing_db"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    expose:
+      - 80
+    restart: unless-stopped
+    networks:
+      postgres:
+        ipv4_address: 172.16.2.6
+    links:
+      - postgres
+
+  broker2:
+    image: confluentinc/cp-server:latest
+    container_name: broker2
+    restart: always
+    ports:
+      - 39093:39093
+      - 29093:29093
+      - 9102:9102
+    environment:
+      KAFKA_BROKER_ID: 2
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_ZOOKEEPER_CONNECT: 192.168.1.13:22181
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker2:9093,EXTERNAL://localhost:29093,EXTERNAL_DIFFERENT://192.168.1.15:39093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,EXTERNAL_DIFFERENT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL_DIFFERENT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_JMX_PORT: 9102
+      KAFKA_JMX_HOSTNAME: localhost
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: 192.168.1.15:39093
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+      CONFLUENT_METRICS_ENABLE: 'true'
+    networks:
+      postgres:
+        ipv4_address: 172.16.2.12
+
+  broker3:
+    image: confluentinc/cp-server:latest
+    container_name: broker3
+    restart: always
+    ports:
+      - 39094:39094
+      - 29094:29094
+      - 9103:9103
+    environment:
+      KAFKA_BROKER_ID: 3
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_ZOOKEEPER_CONNECT: 192.168.1.13:22181
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker3:9094,EXTERNAL://localhost:29094,EXTERNAL_DIFFERENT://192.168.1.15:39094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,EXTERNAL_DIFFERENT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL_DIFFERENT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_JMX_PORT: 9103
+      KAFKA_JMX_HOSTNAME: localhost
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: 192.168.1.15:39094
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+      CONFLUENT_METRICS_ENABLE: 'true'
+    networks:
+      postgres:
+        ipv4_address: 172.16.2.13
+
+
+  kafka_data_worker:
+    build:
+      context: ./services/kafka
+      dockerfile: ./Dockerfile
+    container_name: kafka_data_worker
+    restart: always
+    command: python data_worker.py -f data -t features  -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:192.168.1.15:27017:investing
+    volumes:
+      - ./services/kafka:/home/app
+    depends_on:
+      - kafka_feature_worker
+
+  kafka_feature_worker:
+    build:
+      context: ./services/kafka
+      dockerfile: ./Dockerfile
+    container_name: kafka_feature_worker
+    restart: always
+    command: python data_worker.py -f features -t predicts -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:192.168.1.15:27017:investing
+    volumes:
+      - ./services/kafka:/home/app
+    depends_on:
+      - kafka_predicts_worker
+
+  kafka_predicts_worker:
+    build:
+      context: ./services/kafka
+      dockerfile: ./Dockerfile
+    container_name: kafka_predicts_worker
+    restart: always
+    command: python data_worker.py -f predicts -t empty -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:192.168.1.15:27017:investing
+    volumes:
+      - ./services/kafka:/home/app
+    depends_on:
+      - broker2
+
+
+  nginx:
+    build: ./services/nginx
+    container_name: db_nginx
+    restart: always
+      NGINX_CONFIG_PATH: 'db-nginx.conf'
+    ports:
+      - 5050:80
+#      - 5432:5432
+    networks:
+      postgres:
+        ipv4_address: 172.16.2.4
+    links:
+      - postgres
+
+networks:
+  postgres:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.2.0/24
+          gateway: 172.16.2.1
+
+volumes:
+  postgres:
+  pgadmin:
+

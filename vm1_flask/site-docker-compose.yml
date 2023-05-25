@@ -526,6 +526,8 @@ services:
     restart: on-failure
     volumes:
       - static:/home/app/flask_app/static
+    environment:
+      NGINX_CONFIG_PATH: 'site-nginx.conf'
     ports:
       - 80:80
       - 1337:80

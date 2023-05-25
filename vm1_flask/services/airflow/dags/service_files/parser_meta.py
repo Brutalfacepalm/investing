@@ -5,23 +5,20 @@ import collections
 import six
 import click
 from operator import attrgetter
-from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 import json
 import pandas as pd
 
-__all__ = ['FinamExportError',
-           'FinamDownloadError',
-           'FinamThrottlingError',
-           'FinamParsingError',
-           'FinamObjectNotFoundError',
-           'FinamTooLongTimeframeError',
-           'FinamAlreadyInProgressError'
-           ]
+__all__ = ['FinamExportError', 'FinamDownloadError', 'FinamThrottlingError', 'FinamParsingError',
+           'FinamObjectNotFoundError', 'FinamTooLongTimeframeError', 'FinamAlreadyInProgressError']
 
 FINAM_CHARSET = 'cp1251'
 FINAM_TRUSTED_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) ' \
                            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+FINAM_BASE = 'https://www.finam.ru'
+FINAM_ENTRY_URL = FINAM_BASE + '/profile/moex-akcii/gazprom/export/'
+FINAM_META_FILENAME = 'icharts.js'
+FINAM_CATEGORIES = -1
 
 
 class FinamExportError(Exception):
@@ -53,29 +50,56 @@ class FinamAlreadyInProgressError(FinamExportError):
 
 
 def is_container(val):
-    return isinstance(val, collections.Container) \
-           and not isinstance(val, six.string_types) \
-           and not isinstance(val, bytes)
+    """
+
+    :param val:
+    :return:
+    """
+    is_c = isinstance(val, collections.Container)
+    return is_c and not isinstance(val, six.string_types) and not isinstance(val, bytes)
 
 
 def smart_encode(val, charset=FINAM_CHARSET):
+    """
+
+    :param val:
+    :param charset:
+    :return:
+    """
     if is_container(val):
         return [v.encode(charset) for v in val]
     return val.encode(charset)
 
 
 def smart_decode(val, charset=FINAM_CHARSET):
+    """
+
+    :param val:
+    :param charset:
+    :return:
+    """
     if is_container(val):
         return [v.decode(charset) for v in val]
     return val.decode(charset)
 
 
 def build_trusted_request(url):
+    """
+
+    :param url:
+    :return:
+    """
     headers = {'User-Agent': FINAM_TRUSTED_USER_AGENT}
     return Request(url, None, headers)
 
 
 def parse_script_link(html, src_entry):
+    """
+
+    :param html:
+    :param src_entry:
+    :return:
+    """
     re_src_entry = re.escape(src_entry)
     pattern = '<script src="([^"]*{}[^"]*)"'.format(re_src_entry)
     match = re.search(pattern, html)
@@ -84,12 +108,18 @@ def parse_script_link(html, src_entry):
     return match.group(1)
 
 
-def click_validate_enum(enumClass, ctx, param, value):
+def click_validate_enum(enum_class, value):
+    """
+
+    :param enum_class:
+    :param value:
+    :return:
+    """
     if value is not None:
         try:
-            enumClass[value]
+            enum_class[value]
         except KeyError:
-            allowed = map(attrgetter('name'), enumClass)
+            allowed = map(attrgetter('name'), enum_class)
             raise click.BadParameter('allowed values: {}'
                                      .format(', '.join(allowed)))
     return value
@@ -102,6 +132,12 @@ class LookupComparator(IntEnum):
 
 
 def fetch_url(url, lines=False):
+    """
+
+    :param url:
+    :param lines:
+    :return:
+    """
     request = build_trusted_request(url)
     try:
         fh = urlopen(request)
@@ -114,41 +150,49 @@ def fetch_url(url, lines=False):
     try:
         return smart_decode(response)
     except UnicodeDecodeError as e:
-        raise FinamDownloadError('Unable to decode: {}'.format(e.message))
+        raise FinamDownloadError('Unable to decode: {}'.format(e))
 
 
 class ExporterMetaPage(object):
-    FINAM_BASE = 'https://www.finam.ru'
-    FINAM_ENTRY_URL = FINAM_BASE + '/profile/moex-akcii/gazprom/export/'
-    FINAM_META_FILENAME = 'icharts.js'
+    """
 
+    """
     def __init__(self, fetcher=fetch_url):
         self._fetcher = fetcher
 
     def find_meta_file(self):
-        html = self._fetcher(self.FINAM_ENTRY_URL)
+        """
+
+        :return:
+        """
+        html = self._fetcher(FINAM_ENTRY_URL)
         try:
-            url = parse_script_link(html, self.FINAM_META_FILENAME)
+            url = parse_script_link(html, FINAM_META_FILENAME)
         except ValueError as e:
             raise FinamParsingError('Unable to parse meta url from html: {}'
                                     .format(e))
-        return self.FINAM_BASE + url
+        return FINAM_BASE + url
 
 
 class ExporterMetaFile(object):
-    FINAM_CATEGORIES = -1
+    """
 
+    """
     def __init__(self, url, fetcher=fetch_url):
         self._url = url
         self._fetcher = fetcher
 
-    def _parse_js_assignment(self, line):
+    @staticmethod
+    def _parse_js_assignment(line):
+        """
 
+        :param line:
+        :return:
+        """
         start_char, end_char = '[', ']'
         start_idx = line.find(start_char)
         end_idx = line.find(end_char)
-        if (start_idx == -1 or
-                end_idx == -1):
+        if (start_idx == -1) or (end_idx == -1):
             raise FinamDownloadError('Unable to parse line: {}'.format(line))
         items = line[start_idx + 1:end_idx]
 
@@ -161,6 +205,11 @@ class ExporterMetaFile(object):
         return items.split(',')
 
     def _parse_js(self, data):
+        """
+
+        :param data:
+        :return:
+        """
         cols = ['id', 'name', 'code', 'market']
         parsed = dict()
         urls = data[8][19:-1]
@@ -174,7 +223,7 @@ class ExporterMetaFile(object):
         df = pd.DataFrame(columns=cols, data=parsed)
         df['market'] = df['market'].astype(int)
 
-        df = df[df.market != self.FINAM_CATEGORIES]
+        df = df[df.market != FINAM_CATEGORIES]
 
         df['id'] = df['id'].astype(int)
         df.set_index('id', inplace=True)
@@ -187,7 +236,9 @@ class ExporterMetaFile(object):
 
 
 class ExporterMeta(object):
+    """
 
+    """
     def __init__(self, lazy=True, fetcher=fetch_url):
         self._meta = None
         self._fetcher = fetcher
@@ -195,6 +246,10 @@ class ExporterMeta(object):
             self._load()
 
     def _load(self):
+        """
+
+        :return:
+        """
         if self._meta is not None:
             return self._meta
         page = ExporterMetaPage(self._fetcher)
@@ -204,9 +259,20 @@ class ExporterMeta(object):
 
     @property
     def meta(self):
+        """
+
+        :return:
+        """
         return self._meta.copy(deep=True)
 
     def _apply_filter(self, col, val, comparator):
+        """
+
+        :param col:
+        :param val:
+        :param comparator:
+        :return:
+        """
         if not is_container(val):
             val = [val]
 
@@ -224,7 +290,14 @@ class ExporterMeta(object):
                 map(getattr(self._meta[col].str, op), val), operator.or_)
         return expr
 
-    def _combine_filters(self, filters, op):
+    @staticmethod
+    def _combine_filters(filters, op):
+        """
+
+        :param filters:
+        :param op:
+        :return:
+        """
         itr = iter(filters)
         result = next(itr)
         for filter_ in itr:
@@ -234,9 +307,18 @@ class ExporterMeta(object):
     def lookup(self, id_=None, code=None, name=None, market=None,
                name_comparator=LookupComparator.CONTAINS,
                code_comparator=LookupComparator.EQUALS):
+        """
+
+        :param id_:
+        :param code:
+        :param name:
+        :param market:
+        :param name_comparator:
+        :param code_comparator:
+        :return:
+        """
         if not any((id_, code, name, market)):
-            raise ValueError('Either id or code or name or market'
-                             ' must be specified')
+            raise ValueError('Either id or code or name or market must be specified')
 
         self._load()
         filters = []

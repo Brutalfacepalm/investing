@@ -10,6 +10,11 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 @jit(nopython=True)
 def apply_rolling_table(x):
+    """
+
+    :param x:
+    :return:
+    """
     op = x[0, 0]
     max_cl = max(x[:, 1])
     min_cl = min(x[:, 1])
@@ -18,8 +23,14 @@ def apply_rolling_table(x):
 
 
 class FeatureCreator:
+    """
 
+    """
     def __init__(self, data_as_df):
+        """
+
+        :param data_as_df:
+        """
         self.eps = 1e-5
         self.df = data_as_df
         self.hours_ma = [20, 30, 40, 50, 60, 70, 80, 100, 125, 150, 175]
@@ -42,7 +53,11 @@ class FeatureCreator:
                                [21, 34, 55, 89], ]
 
     def diff_and_div(self, df):
+        """
 
+        :param df:
+        :return:
+        """
         df['(c-o)/o'] = (df['close'] - df['open']) / df['open']
         df['(l-o)/o'] = (df['low'] - df['open']) / df['open']
         df['(h-o)/o'] = (df['high'] - df['open']) / df['open']
@@ -65,13 +80,24 @@ class FeatureCreator:
 
         return df
 
-    def gap(self, df):
+    @staticmethod
+    def gap(df):
+        """
+
+        :param df:
+        :return:
+        """
         df['gap'] = np.append([0], df['open'].to_numpy()[1:] - df['close'].to_numpy()[:-1])
         df['gap/o'] = df['gap'] / df['open']
 
         return df
 
     def ma(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
             df[f'ma_close_{hour}h'] = df['close'].rolling(window=hour, min_periods=1).mean()
             df[f'(ma_close_{hour}h-c)/c'] = (df[f'ma_close_{hour}h'] - df['close']) / df['close']
@@ -96,6 +122,11 @@ class FeatureCreator:
         return df
 
     def ma_subdata(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
             df[f'ma_close_s1_{hour}h_sd'] = df['close_s1'].rolling(window=hour, min_periods=1).mean()
             df[f'(ma_close_s1_{hour}h-c)/c_sd'] = (df[f'ma_close_s1_{hour}h_sd'] - df['close_s1']) / (
@@ -113,6 +144,11 @@ class FeatureCreator:
         return df
 
     def rsi(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_rsi:
             delta = df['close'].diff()
             delta.fillna(0, inplace=True)
@@ -127,6 +163,11 @@ class FeatureCreator:
         return df
 
     def macd(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour_i, hour_j, hour_k in self.hours_macd:
             exp1 = df['close'].ewm(span=hour_i, min_periods=1, adjust=False).mean()
             exp2 = df['close'].ewm(span=hour_j, min_periods=1, adjust=False).mean()
@@ -138,6 +179,11 @@ class FeatureCreator:
         return df
 
     def atr(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         high_low = df['high'] - df['low']
         for hour in self.hours_atr:
             high_close = np.abs(df['high'] - df['close'].shift())
@@ -150,6 +196,11 @@ class FeatureCreator:
         return df
 
     def general_points(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         df['support_80'] = df['close'].rolling(window=80, min_periods=1).min()
         df['support_80_mean'] = df['close'].rolling(window=80, min_periods=1).mean()
         df['resist_80'] = df['close'].rolling(window=80, min_periods=1).max()
@@ -179,6 +230,11 @@ class FeatureCreator:
         return df
 
     def trend(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_trens:
             mean_values = []
             std_values = []
@@ -249,6 +305,11 @@ class FeatureCreator:
         return df
 
     def ao(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour_mn, hour_mj in self.hours_ao:
             median_price = (df['high'] + df['low']) / 2
             sma_mn = median_price.rolling(window=hour_mn, min_periods=1).mean()
@@ -258,6 +319,11 @@ class FeatureCreator:
         return df
 
     def ac(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour_mn, hour_mj in self.hours_ao:
             median_price = (df['high'] + df['low']) / 2
             sma_mn = median_price.rolling(window=hour_mn, min_periods=1).mean()
@@ -268,6 +334,11 @@ class FeatureCreator:
         return df
 
     def alligator(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         median_price = (df['high'] + df['low']) / 2
         for h1, h2, h3, h4 in self.hours_aligator:
             sum_lips = median_price.rolling(window=h2, min_periods=1).sum()
@@ -291,30 +362,43 @@ class FeatureCreator:
         return df
 
     def ema(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
-            df[f'ewa_{hour}'] = df['close'].ewm(span=hour,
-                                                min_periods=1,
-                                                adjust=False,
-                                                ignore_na=False).mean()
+            df[f'ewa_{hour}'] = df['close'].ewm(span=hour, min_periods=1, adjust=False, ignore_na=False).mean()
         return df
 
     def brp(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
-            df[f'bears_{hour}'] = df['low'] - df['low'].ewm(span=hour,
-                                                            min_periods=1,
-                                                            adjust=False,
-                                                            ignore_na=False).mean()
+            df[f'bears_{hour}'] = df['low'] - df['low'].ewm(span=hour, min_periods=1,
+                                                            adjust=False, ignore_na=False).mean()
         return df
 
     def blp(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
-            df[f'bulls_{hour}'] = df['high'] - df['high'].ewm(span=hour,
-                                                              min_periods=1,
-                                                              adjust=False,
-                                                              ignore_na=False).mean()
+            df[f'bulls_{hour}'] = df['high'] - df['high'].ewm(span=hour, min_periods=1,
+                                                              adjust=False, ignore_na=False).mean()
         return df
 
     def cci(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         tp = (df['high'] + df['low'] + df['close']) / 3
 
         for hour in self.hours_ma:
@@ -326,7 +410,11 @@ class FeatureCreator:
         return df
 
     def dem(self, df):
+        """
 
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
             demax = df['high'] - df['high'].shift(hour)
             demin = df['low'].shift(hour) - df['low']
@@ -340,6 +428,11 @@ class FeatureCreator:
         return df
 
     def envlp(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         k = 10
         for hour in self.hours_ma:
             upper_band = df['close'].rolling(window=hour, min_periods=1).mean() * (1 + k / 1000)
@@ -351,14 +444,24 @@ class FeatureCreator:
         return df
 
     def mf(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         hl = df['high'] - df['low']
         df['mf_0'] = hl / df['volume']
         for hour in self.hours_ma:
-            df[f'mf_{hour}'] = hl.rolling(window=hour, min_periods=1).mean() / df['volume'].rolling(window=hour,
-                                                                                                    min_periods=1).mean()
+            df[f'mf_{hour}'] = hl.rolling(window=hour, min_periods=1).mean() /\
+                               df['volume'].rolling(window=hour, min_periods=1).mean()
         return df
 
     def mfi(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         tp = (df['high'] + df['low'] + df['close']) / 3
         money_flow = tp * df['volume']
 
@@ -372,8 +475,12 @@ class FeatureCreator:
         return df
 
     def obv(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
-            #             hour = min(hour, df.shape[0])
             obv_0 = 0
             closes = df['close'].values
             volumes = df['volume'].values
@@ -391,9 +498,13 @@ class FeatureCreator:
         return df
 
     def sar(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         acceleration = 0.02
         for hour in self.hours_ma:
-            #             hour = min(min(hour, df.shape[0]), df.shape[0])
             highs = df['high'].values
             sar_i_high = [0] * min(hour, df.shape[0])
             for i in range(min(hour, df.shape[0]), df.shape[0]):
@@ -405,21 +516,37 @@ class FeatureCreator:
         return df
 
     def sd(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
-            df[f'sd_{hour}'] = (((df['close'] - df['close'].rolling(window=hour, min_periods=1).mean()) ** 2).rolling(
-                window=hour, min_periods=1).mean()) ** 0.5
+            sd_hour = ((df['close'] - df['close'].rolling(window=hour, min_periods=1).mean()) ** 2)
+            df[f'sd_{hour}'] = (sd_hour.rolling(window=hour, min_periods=1).mean()) ** 0.5
         return df
 
     def so(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         for hour in self.hours_ma:
             k = (df['close'] - df['low'].rolling(window=hour, min_periods=1).min()) / \
-                (df['high'].rolling(window=hour, min_periods=1).max() - df['low'].rolling(window=hour,
-                                                                                          min_periods=1).min() + self.eps)
+                (df['high'].rolling(window=hour,
+                                    min_periods=1).max() - df['low'].rolling(window=hour,
+                                                                             min_periods=1).min() + self.eps)
             d = k.rolling(window=hour, min_periods=1).mean()
             df[f'so_{hour}'] = d
         return df
 
     def date_features(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         df['hour_of_day'] = df['time'].apply(lambda x: pd.Timestamp(x).hour)
         df['day_of_week'] = df['time'].apply(lambda x: pd.Timestamp(x).day_of_week + 1)
         df['week_of_year'] = df['time'].apply(lambda x: pd.Timestamp(x).weekofyear)
@@ -439,7 +566,13 @@ class FeatureCreator:
 
         return df
 
-    def clear_df(self, df):
+    @staticmethod
+    def clear_df(df):
+        """
+
+        :param df:
+        :return:
+        """
         df['anomaly_tend'] = df[['open', 'close']].rolling(window=18,
                                                            min_periods=1,
                                                            method='table').apply(apply_rolling_table,
@@ -478,8 +611,12 @@ class FeatureCreator:
         return dataframes
 
     def generate_feature_one_df(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         df = df.loc[df['time'].dt.hour.between(10, 22)]
-        # df.iloc[:, 1:] = np.log(df.iloc[:, 1:])
 
         df = self.diff_and_div(df)
         df = self.gap(df)
@@ -508,15 +645,16 @@ class FeatureCreator:
         df = self.so(df)
         df = self.date_features(df)
 
-        print(sum(df.isna().any(axis=1).values))
-        print(df.shape)
-
         return df
 
     def generate_feature(self, do_clear=False):
+        """
+
+        :param do_clear:
+        :return:
+        """
         self.ru_holidays = holidays.RU(years=range(self.df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.min(),
                                                    self.df['time'].apply(lambda x: pd.Timestamp(x)).dt.year.max() + 2))
-        print(self.ru_holidays)
 
         if do_clear:
             self.df = self.clear_df(self.df)

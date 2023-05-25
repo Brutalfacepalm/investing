@@ -19,8 +19,9 @@ from airflow.utils.operator_helpers import determine_kwargs
 import json
 from urllib.parse import urlencode
 
-# with open('./dags/service_files/tickers.json', 'r+') as f:
-#     TICKERS = json.load(f)
+
+MONGO_DB_NAME = 'investing'
+BOOTSTRAP_KAFKA_SERVER = '192.168.1.13:39092'
 
 
 class SkipConflictPostgresHook(PostgresHook):
@@ -29,12 +30,14 @@ class SkipConflictPostgresHook(PostgresHook):
         """
         A generic way to insert a set of tuples into a table,
         a new transaction is created every commit_every rows
-        :param table: Name of the target table
-        :param rows: The rows to insert into the table
-        :param target_fields: The names of the columns to fill in the table
-        :param commit_every: The maximum number of rows to insert in one
-            transaction. Set to 0 to insert all rows in one transaction.
-        :param replace: Whether to replace instead of insert
+        :param table:
+        :param rows:
+        :param target_fields:
+        :param commit_every:
+        :param replace:
+        :param resolve_conflict:
+        :param kwargs:
+        :return:
         """
         i = 0
         with closing(self.get_conn()) as conn:
@@ -53,7 +56,6 @@ class SkipConflictPostgresHook(PostgresHook):
                     if resolve_conflict:
                         sql += f' ON CONFLICT ({resolve_conflict}) DO NOTHING'
                     self.log.debug("Generated sql: %s", sql)
-                    # print(sql)
                     cur.execute(sql, values)
                     if commit_every and i % commit_every == 0:
                         conn.commit()
@@ -65,7 +67,6 @@ class SkipConflictPostgresHook(PostgresHook):
 
 class HttpOperatorCheckDates(SimpleHttpOperator):
     def execute(self, context: Context) -> Any:
-        print(f"EXECUTION_DATE: {context['execution_date'].in_timezone(tz='Europe/Moscow').strftime('%Y%m%d,%H0000')}")
         http = HttpHook(
             self.method,
             http_conn_id=self.http_conn_id,
@@ -90,6 +91,11 @@ class HttpOperatorCheckDates(SimpleHttpOperator):
 
 
 def fn_postgres_select_last_date(**context):
+    """
+
+    :param context:
+    :return:
+    """
     sql = 'SELECT MAX(time) FROM {} ;'.format(context['ticker'])
     hook = PostgresHook(postgres_conn_id=context['postgres_conn_id'])
     records = hook.get_records(sql=sql)[0][0]
@@ -97,10 +103,16 @@ def fn_postgres_select_last_date(**context):
 
 
 def fn_mongodb_select_last_date(**context):
+    """
+
+    :param context:
+    :return:
+    """
     try:
         hook = MongoHook(conn_id='mongodb_conn')
         client = hook.get_conn()
-        db = client.investing
+        db_name = context['db_name']
+        db = client[db_name]
         if context['params']['ticker'] in db.list_collection_names():
             collection = db[context['params']['ticker']]
             last_time = collection.find(sort=[("time", -1)]).limit(1)[0]['time']
@@ -110,11 +122,17 @@ def fn_mongodb_select_last_date(**context):
         print(f"Error connecting to MongoDB -- {e}")
 
 
-def fn_get_metadata():
+def fn_get_metadata(**context):
+    """
+
+    :param context:
+    :return:
+    """
     try:
         hook = MongoHook(conn_id='mongodb_conn')
         client = hook.get_conn()
-        db = client.investing
+        db_name = context['db_name']
+        db = client[db_name]
         if 'meta' in db.list_collection_names():
             collection = db['meta']
             meta_data = list(collection.find({}, projection={'_id': False}))
@@ -125,11 +143,15 @@ def fn_get_metadata():
 
 
 def fn_get_endpoint(execution_date, **context):
-    """ Define start_date how min(postgres_date, mongodb_date) and end_date how Today() for Parser. """
+    """
+
+    :param execution_date:
+    :param context:
+    :return:
+    """
     date_start = min(from_format(context['postgres_last_date'], 'YYYY-MM-DD HH:00:00'),
                      from_format(context['mongo_last_date'], 'YYYY-MM-DD HH:00:00'))
 
-    date_start = date_start
     date_end = execution_date
     context['task_instance'].xcom_push(key='response_check_date',
                                        value=execution_date.add(hours=1).strftime('%Y%m%d,%H0000'))
@@ -142,39 +164,27 @@ def fn_get_endpoint(execution_date, **context):
                    (meta['market'].isin([1, 25]))]
     em = curr_df['id'].values[0]
     market = curr_df['market'].values[0]
-    context['task_instance'].xcom_push(key='market',
-                                       value=str(market))
+    context['task_instance'].xcom_push(key='market', value=str(market))
 
     head = f'{code}_{date_start.strftime("%d%m%y")}_{date_end.strftime("%d%m%y")}'
-    endpoint = head + '.txt?' + urlencode([('market', market),
-                                 ('em', em),
-                                 ('code', code),
-                                 ('apply', 0),
-                                 ('df', date_start.day),
-                                 ('mf', date_start.month-1),
-                                 ('yf', date_start.year),
-                                 ('from', date_start.strftime('%d.%m.%Y')),
-                                 ('dt', date_end.day),
-                                 ('mt', date_end.month-1),
-                                 ('yt', date_end.year),
-                                 ('to', date_end.strftime('%d.%m.%Y')),
-                                 ('p', 7),
-                                 ('f', head),
-                                 ('e', '.txt'),
-                                 ('cn', code),
-                                 ('dtf', 1),
-                                 ('tmf', 1),
-                                 ('MSOR', 0),
-                                 ('mstime', 'on'),
-                                 ('mstimever', 1),
-                                 ('sep', 1),
-                                 ('sep2', 1),
-                                 ('datf', 1),
-                                 ('at', 0)])
+    endpoint = head + '.txt?' + urlencode([('market', market), ('em', em), ('code', code), ('apply', 0),
+                                           ('df', date_start.day), ('mf', date_start.month-1), ('yf', date_start.year),
+                                           ('from', date_start.strftime('%d.%m.%Y')),
+                                           ('dt', date_end.day), ('mt', date_end.month-1), ('yt', date_end.year),
+                                           ('to', date_end.strftime('%d.%m.%Y')),
+                                           ('p', 7), ('f', head), ('e', '.txt'), ('cn', code),
+                                           ('dtf', 1), ('tmf', 1), ('MSOR', 0), ('mstime', 'on'),
+                                           ('mstimever', 1), ('sep', 1), ('sep2', 1), ('datf', 1), ('at', 0)])
     return endpoint
 
 
 def fn_get_correct_data(execution_date, **context):
+    """
+
+    :param execution_date:
+    :param context:
+    :return:
+    """
     http_data = context['http_data']
     market = int(context['task_instance'].xcom_pull(task_ids='get_endpoint', key='market'))
     ticker_hourly_data = []
@@ -193,48 +203,29 @@ def fn_get_correct_data(execution_date, **context):
         else:
             start_time = 10
             end_time = 19
-        if h_datetime.hour >= start_time and h_datetime.hour < end_time:
+        if (h_datetime.hour >= start_time) and (h_datetime.hour < end_time):
             o, h, l, c, v = float(hourly[4]), float(hourly[5]), float(hourly[6]), float(hourly[7]), int(hourly[8])
             ticker_hourly_data.append([h_datetime.strftime('%Y-%m-%d %H:00:00'), o, h, l, c, v])
     return json.dumps(ticker_hourly_data)
 
 
-def fn_produce_to_topic_data(ticker, data):
+def fn_produce_to_topic_data(ticker_, data):
+    """
+
+    :param ticker_:
+    :param data:
+    :return:
+    """
     data = json.loads(data)
-    yield (json.dumps(ticker), json.dumps(data))
-
-
-def fn_postgres_load_new_data(**context):
-    """ TO DO IN PostgresOperator and INSERT only new data """
-    hook = SkipConflictPostgresHook(postgres_conn_id=context['postgres_conn_id'])
-    data = json.loads(context['parse_data'])
-    hook.insert_rows(table=context['ticker'],
-                     rows=data,
-                     resolve_conflict='time')
-
-
-def fn_mongodb_load_new_data(**context):
-    """ TO DO IN MongoHook and INSERT only new data """
-    try:
-        hook = MongoHook(conn_id='mongodb_conn')
-        client = hook.get_conn()
-        db = client.investing
-        data = json.loads(context['parse_data'])
-        to_insert = list(
-            map(lambda x: dict(zip(['time', 'open', 'high', 'low', 'close', 'volume'], x)), data))
-
-        collection = db[context['params']['ticker']]
-        collection.with_options(write_concern=WriteConcern(w=0)).insert_many(to_insert, ordered=False)
-
-    except Exception as e:
-        print(f"Error connecting to MongoDB -- {e}")
+    dumpers = (json.dumps(ticker_), json.dumps(data))
+    yield dumpers
 
 
 default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
                 'retries': 30,
-                'retry_delay': duration(seconds=15),}
+                'retry_delay': duration(seconds=15)}
 
-moex = ['sber', 'gazp', 'lkoh']
+moex = ['sber', 'gazp', 'lkoh', 'gmkn', 'sngs']
 bats = ['aapl', 'fdx', 'ibm', 'gs']
 for ticker in moex + bats:
     with DAG(
@@ -249,7 +240,6 @@ for ticker in moex + bats:
             external_dag_id=f'004_parse_subdata',
             external_task_ids=['mongodb_load_data', 'postgres_load_data'],
             timeout=300)
-
         postgres_last_date = PythonOperator(
             task_id='postgres_last_date',
             python_callable=fn_postgres_select_last_date,
@@ -258,13 +248,12 @@ for ticker in moex + bats:
                        'ticker': ticker})
         mongo_last_date = PythonOperator(
             task_id="mongo_last_date",
-            python_callable=fn_mongodb_select_last_date)
-
+            python_callable=fn_mongodb_select_last_date,
+            op_kwargs={'db_name': MONGO_DB_NAME})
         get_metadata = PythonOperator(
             task_id='get_metadata',
             python_callable=fn_get_metadata,
-        )
-
+            op_kwargs={'db_name': MONGO_DB_NAME})
         get_endpoint = PythonOperator(
             task_id="get_endpoint",
             python_callable=fn_get_endpoint,
@@ -273,7 +262,6 @@ for ticker in moex + bats:
                        'mongo_last_date': mongo_last_date.output,
                        'meta': get_metadata.output},
             do_xcom_push=True)
-
         parse_data_http = HttpOperatorCheckDates(
             task_id='parse_data_http',
             http_conn_id='http_finam',
@@ -281,36 +269,19 @@ for ticker in moex + bats:
             endpoint="{{ task_instance.xcom_pull(task_ids='get_endpoint') }}",
             headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) '
                                    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'},
-            log_response=True
-        )
+            log_response=True)
 
         get_correct_data = PythonOperator(
             task_id='get_correct_data',
             python_callable=fn_get_correct_data,
-            op_kwargs={'http_data': parse_data_http.output,}
-        )
+            op_kwargs={'http_data': parse_data_http.output})
 
         produce_to_topic_data = ProduceToTopicOperator(
             task_id=f"produce_to_topic_data",
             topic='data',
             producer_function=fn_produce_to_topic_data,
             producer_function_args=(ticker, get_correct_data.output),
-            kafka_config={'bootstrap.servers': '192.168.1.13:39092'},
-            # op_kwargs={'ticker': ticker,
-            #            'parse_data': get_correct_data.output}
-        )
-
-        # postgres_load_data = PythonOperator(
-        #     task_id="postgres_load_data",
-        #     python_callable=fn_postgres_load_new_data,
-        #     op_kwargs={'postgres_conn_id': 'postgres_conn',
-        #                'ticker': ticker,
-        #                'parse_data': get_correct_data.output})
-        # mongodb_load_data = PythonOperator(
-        #     task_id="mongodb_load_data",
-        #     python_callable=fn_mongodb_load_new_data,
-        #     op_kwargs={"parse_data": get_correct_data.output}, )
+            kafka_config={'bootstrap.servers': BOOTSTRAP_KAFKA_SERVER})
 
         previous_dag >> [postgres_last_date, mongo_last_date, get_metadata] >> get_endpoint >> parse_data_http
         parse_data_http >> get_correct_data >> produce_to_topic_data
-        # get_correct_data >> [postgres_load_data, mongodb_load_data]

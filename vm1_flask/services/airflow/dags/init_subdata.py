@@ -22,19 +22,25 @@ with open('./dags/service_files/currencies.json', 'r+') as f:
 with open('./dags/service_files/features.json', 'r+') as f:
     features = json.load(f)
 
+MONGO_DB_NAME = 'investing'
+MAX_LEN_DATA_COLLECTION_MONGO = 1680
+
 
 class SkipConflictPostgresHook(PostgresHook):
     def insert_rows(self, table, rows, target_fields=None, commit_every=1000,
                     replace=False, resolve_conflict=None, **kwargs):
         """
+
         A generic way to insert a set of tuples into a table,
         a new transaction is created every commit_every rows
-        :param table: Name of the target table
-        :param rows: The rows to insert into the table
-        :param target_fields: The names of the columns to fill in the table
-        :param commit_every: The maximum number of rows to insert in one
-            transaction. Set to 0 to insert all rows in one transaction.
-        :param replace: Whether to replace instead of insert
+        :param table:
+        :param rows:
+        :param target_fields:
+        :param commit_every:
+        :param replace:
+        :param resolve_conflict:
+        :param kwargs:
+        :return:
         """
         i = 0
         with closing(self.get_conn()) as conn:
@@ -64,16 +70,25 @@ class SkipConflictPostgresHook(PostgresHook):
 
 
 def fn_mongodb_create_collection(**context):
+    """
+
+    :param context:
+    :return:
+    """
     try:
         hook = MongoHook(conn_id='mongodb_conn')
         client = hook.get_conn()
-        db = client.investing
-        for t in currencies + features:
-            if t in db.list_collection_names():
-                db.drop_collection(t)
+        db_name = context['db_name']
+        db = client[db_name]
+        for ticker_subdata in currencies + features:
+            if ticker_subdata in db.list_collection_names():
+                db.drop_collection(ticker_subdata)
 
-            db.create_collection(name=t, capped=True, size=2128 * 1680 * 2, max=1680 * 2)
-            collection = db[t]
+            db.create_collection(name=ticker_subdata,
+                                 capped=True,
+                                 size=2128 * MAX_LEN_DATA_COLLECTION_MONGO * 2,
+                                 max=MAX_LEN_DATA_COLLECTION_MONGO * 2)
+            collection = db[ticker_subdata]
             collection.create_index([("time", pymongo.DESCENDING)],
                                     background=True,
                                     unique=True)
@@ -82,11 +97,17 @@ def fn_mongodb_create_collection(**context):
         print(f"Error connecting to MongoDB -- {e}")
 
 
-def fn_get_metadata():
+def fn_get_metadata(**context):
+    """
+
+    :param context:
+    :return:
+    """
     try:
         hook = MongoHook(conn_id='mongodb_conn')
         client = hook.get_conn()
-        db = client.investing
+        db_name = context['db_name']
+        db = client[db_name]
         if 'meta' in db.list_collection_names():
             collection = db['meta']
             meta_data = list(collection.find({}, projection={'_id': False}))
@@ -97,16 +118,22 @@ def fn_get_metadata():
 
 
 def fn_parse_subdata(execution_date, **context):
+    """
+
+    :param execution_date:
+    :param context:
+    :return:
+    """
     meta = json.loads(context['meta'])
     meta = pd.DataFrame.from_dict(dict(zip(['id', 'name', 'code', 'market', 'url'],
                                            list(zip(*[list(v.values()) for v in meta])))))
     meta = meta[meta['market'].isin([5, 14, 17, 24, 45])]
     subdata = {}
-    for t in currencies:
+    for ticker_subdata in currencies:
         date_start = '01.01.2012 00:00:00'
         date_end = execution_date.in_timezone("Europe/Moscow").add(days=-1).strftime("%d.%m.%Y 23:00:00")
 
-        parser_ticker = Parser(t.upper(),
+        parser_ticker = Parser(ticker_subdata.upper(),
                                date_start,
                                date_end,
                                split_period='year',
@@ -114,13 +141,13 @@ def fn_parse_subdata(execution_date, **context):
                                meta_df=meta,
                                subdata=True)
         data_as_df = parser_ticker.parse()
-        subdata[t] = data_as_df
+        subdata[ticker_subdata] = data_as_df
 
-    for t in features:
+    for ticker_subdata in features:
         date_start = '01.01.2012 00:00:00'
         date_end = execution_date.in_timezone("Europe/Moscow").add(days=-1).strftime("%d.%m.%Y 23:00:00")
 
-        parser_ticker = Parser(t.upper(),
+        parser_ticker = Parser(ticker_subdata.upper(),
                                date_start,
                                date_end,
                                split_period='year',
@@ -128,16 +155,22 @@ def fn_parse_subdata(execution_date, **context):
                                meta_df=meta,
                                subdata=True)
         data_as_df = parser_ticker.parse()
-        subdata[t] = data_as_df
+        subdata[ticker_subdata] = data_as_df
 
     return json.dumps(subdata)
 
 
 def fn_mongodb_load_subdata(**context):
+    """
+
+    :param context:
+    :return:
+    """
     try:
         hook = MongoHook(conn_id='mongodb_conn')
         client = hook.get_conn()
-        db = client.investing
+        db_name = context['db_name']
+        db = client[db_name]
         data = json.loads(context['parse_data'])
         for k, v in data.items():
             to_insert = list(
@@ -151,12 +184,15 @@ def fn_mongodb_load_subdata(**context):
 
 
 def fn_postgres_load_subdata(**context):
+    """
+
+    :param context:
+    :return:
+    """
     hook = SkipConflictPostgresHook(postgres_conn_id=context['postgres_conn_id'])
     data = json.loads(context['parse_data'])
     for k, v in data.items():
-        hook.insert_rows(table=k,
-                         rows=v,
-                         resolve_conflict='time')
+        hook.insert_rows(table=k, rows=v, resolve_conflict='time')
 
 
 default_args = {'start_date': datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
@@ -172,20 +208,19 @@ with DAG(
     postgres_create = PostgresOperator(
         task_id='postgres_create',
         postgres_conn_id="postgres_conn",
-        sql='\n'.join([f'DROP TABLE IF EXISTS {t}; \n CREATE TABLE IF NOT EXISTS {t} (time timestamp UNIQUE NOT NULL, close float);' for t in currencies + features])
-        )
+        sql='\n'.join([f'DROP TABLE IF EXISTS {t}; \n CREATE TABLE IF NOT EXISTS {t} (time timestamp UNIQUE NOT NULL, close float);' for t in currencies + features]))
     mongo_create = PythonOperator(
         task_id="mongo_create",
-        python_callable=fn_mongodb_create_collection, )
-
+        python_callable=fn_mongodb_create_collection,
+        op_kwargs={'db_name': MONGO_DB_NAME})
     get_metadata = PythonOperator(
         task_id="get_metadata",
-        python_callable=fn_get_metadata, )
+        python_callable=fn_get_metadata,
+        op_kwargs={'db_name': MONGO_DB_NAME})
     parse_subdata = PythonOperator(
         task_id="parse_subdata",
         python_callable=fn_parse_subdata,
         op_kwargs={'meta': get_metadata.output})
-
     postgres_load_subdata = PythonOperator(
         task_id="postgres_load_subdata",
         python_callable=fn_postgres_load_subdata,
@@ -194,7 +229,8 @@ with DAG(
     mongodb_load_subdata = PythonOperator(
         task_id="mongodb_load_subdata",
         python_callable=fn_mongodb_load_subdata,
-        op_kwargs={"parse_data": parse_subdata.output}, )
+        op_kwargs={"parse_data": parse_subdata.output,
+                   'db_name': MONGO_DB_NAME})
 
 
     [postgres_create, mongo_create] >> get_metadata >> parse_subdata >> [postgres_load_subdata, mongodb_load_subdata]
