@@ -83,7 +83,7 @@ services:
     depends_on:
       - postgres
     networks:
-      flask:
+      postgres:
 
   airflow-webserver:
     << : *airflow-common
@@ -95,7 +95,7 @@ services:
     depends_on:
       - airflow-init
     networks:
-      flask:
+      postgres:
 
   airflow-scheduler:
     << : *airflow-common
@@ -105,7 +105,7 @@ services:
     depends_on:
       - airflow-init
     networks:
-      flask:
+      postgres:
 
   mlflow:
     build:
@@ -126,7 +126,7 @@ services:
     depends_on:
       - postgres
     networks:
-      flask:
+      postgres:
 
   broker2:
     image: confluentinc/cp-server:latest
