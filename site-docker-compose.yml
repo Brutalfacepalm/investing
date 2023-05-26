@@ -17,6 +17,7 @@ x-airflow-common:
     - AIRFLOW__CORE__DEFAULT_TIMEZONE=Europe/Moscow
   volumes:
     - ./services/airflow/dags:/opt/airflow/dags
+    - ./services/service_files:/opt/airflow/dags/service_files
     - ./services/airflow/airflow-data/logs:/opt/airflow/logs
     - ./services/airflow/airflow-data/plugins:/opt/airflow/plugins
     - ./services/airflow/airflow-data/airflow.cfg:/opt/airlfow/airflow.cfg
@@ -84,7 +85,8 @@ services:
     restart: always
     command: python data_worker.py -f data -t features  -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
-      - ./services/kafka:/home/app
+#      - ./services/kafka:/home/app
+      - ./services/service_files:/home/app
     depends_on:
       - kafka_feature_worker
     networks:
@@ -98,7 +100,8 @@ services:
     restart: always
     command: python data_worker.py -f features -t predicts -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
-      - ./services/kafka:/home/app
+#      - ./services/kafka:/home/app
+      - ./services/service_files:/home/app
     depends_on:
       - kafka_predicts_worker
     networks:
@@ -112,7 +115,8 @@ services:
     restart: always
     command: python data_worker.py -f predicts -t empty -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
-      - ./services/kafka:/home/app
+#      - ./services/kafka:/home/app
+      - ./services/service_files:/home/app
     depends_on:
       - airflow-webserver
       - broker1
