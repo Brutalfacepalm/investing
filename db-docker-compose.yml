@@ -8,7 +8,7 @@ x-airflow-common:
     - AIRFLOW__CORE__EXECUTOR=LocalExecutor
     - AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS=False
     - AIRFLOW__CORE__LOAD_EXAMPLES=False
-    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres:5432/airflow
+    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://investing_db:investing_db@postgres:5432/airflow
     - AIRFLOW__CORE__STORE_DAG_CODE=True
     - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
     - AIRFLOW__CORE__FERNET_KEY=FB0o_zt4e3Ziq3LdUUO7F2Z95cvFFx16hU8jTeR1ASM=
@@ -33,10 +33,14 @@ services:
     container_name: postgres
     restart: always
     environment:
-      - POSTGRES_PASSWORD: investing_db, airflow, mlflow
-      - POSTGRES_USER: investing_db
-      - POSTGRES_DB: investing_db
-      - PGDATA: "/var/lib/postgresql/data/pgdata"
+#      - POSTGRES_PASSWORD: "investing_db, airflow, mlflow"
+#      - POSTGRES_USER: "investing_db"
+#      - POSTGRES_DB: "investing_db"
+#      - PGDATA: "/var/lib/postgresql/data/pgdata"
+      - POSTGRES_MULTIPLE_DATABASES=investing_db,airflow,mlflow
+      - POSTGRES_USER=investing_db
+      - POSTGRES_PASSWORD=investing_db
+      - PGDATA="/var/lib/postgresql/data/pgdata"
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
@@ -110,7 +114,7 @@ services:
     container_name: mlflow
     restart: on-failure
     command: mlflow server
-      --backend-store-uri postgresql+psycopg2://postgres:postgres@postgres:5432/mlflow
+      --backend-store-uri postgresql+psycopg2://investing_db:investing_db@postgres:5432/mlflow
       --default-artifact-root /mnt/mlruns
       --host 0.0.0.0
       --port 4040
