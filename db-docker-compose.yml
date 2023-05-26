@@ -43,7 +43,7 @@ services:
       - 5432:5432
     networks:
       postgres:
-        ipv4_address: 172.16.2.5
+#        ipv4_address: 172.16.2.5
 
   pgadmin:
     container_name: pgadmin
@@ -58,7 +58,7 @@ services:
     restart: unless-stopped
     networks:
       postgres:
-        ipv4_address: 172.16.2.6
+#        ipv4_address: 172.16.2.6
     links:
       - postgres
 
@@ -150,7 +150,7 @@ services:
       CONFLUENT_METRICS_ENABLE: 'true'
     networks:
       postgres:
-        ipv4_address: 172.16.2.12
+#        ipv4_address: 172.16.2.12
 
 #  broker3:
 #    image: confluentinc/cp-server:latest
@@ -228,22 +228,26 @@ services:
     restart: always
     ports:
       - 5050:80
+      - 8080:8080
 #      - 5432:5432
     networks:
       postgres:
-        ipv4_address: 172.16.2.4
+#        ipv4_address: 172.16.2.4
     links:
       - postgres
+    depends_on:
+      - airflow-init
 
 networks:
   postgres:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.16.2.0/24
-          gateway: 172.16.2.1
+#    driver: bridge
+#    ipam:
+#      config:
+#        - subnet: 172.16.2.0/24
+#          gateway: 172.16.2.1
 
 volumes:
   postgres:
   pgadmin:
+  mlflow:
 

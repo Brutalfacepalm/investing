@@ -118,7 +118,7 @@ services:
 #      - ./services/kafka:/home/app
       - ./services/service_files:/home/app
     depends_on:
-      - airflow-webserver
+#      - airflow-webserver
       - broker1
       - zookeeper
     networks:
@@ -348,8 +348,8 @@ services:
     depends_on:
       - broker1
       - zookeeper
-      - schema-registry
-      - connect
+#      - schema-registry
+#      - connect
     ports:
       - "9021:9021"
     environment:
@@ -515,16 +515,16 @@ services:
     ports:
       - 80:80
       - 1337:80
-#      - 4040:4040
-      - 8080:8080
-      - 8081:8081
+      - 4040:4040
+#      - 8080:8080
+#      - 8081:8081
 #      - 39092:39092
 #      - 39093:39093
 #      - 39094:39094
-#      - 9090:9090
+      - 9090:9090
     depends_on:
       - flask
-      - airflow-init
+#      - airflow-init
 #      - mlflow
       - mongo-express
 #      - redis-commander
@@ -537,12 +537,12 @@ networks:
 
 volumes:
     static:
-#    logs:
+    logs:
     mongo:
 #    postgres:
 #    cache:
 #    conduktor_data:
-#    prometheus:
-#    grafana_data:
+    prometheus:
+    grafana_data:
 #    mlflow:
 
