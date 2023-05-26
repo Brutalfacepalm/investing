@@ -143,7 +143,7 @@ def get_figure(times, opens, highs, lows, closes, volumes,
 
 
 def get_candles(ticker,
-                mongo_conn='mongodb://operate_database:operate_database@localhost:27017/',
+                mongo_conn='mongodb://operate_database:operate_database@mongo:27017/',
                 collection='investing', ):
     """
 
