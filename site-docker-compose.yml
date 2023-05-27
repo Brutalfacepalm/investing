@@ -83,7 +83,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: kafka_data_worker
     restart: always
-    command: python data_worker.py -f data -t features  -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
+    command: python data_worker.py -f data -t features  -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
 #      - ./services/kafka:/home/app
       - ./services/service_files:/home/app
@@ -98,7 +98,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: kafka_feature_worker
     restart: always
-    command: python data_worker.py -f features -t predicts -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
+    command: python data_worker.py -f features -t predicts -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
 #      - ./services/kafka:/home/app
       - ./services/service_files:/home/app
@@ -113,7 +113,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: kafka_predicts_worker
     restart: always
-    command: python data_worker.py -f predicts -t empty -bs 192.168.1.13:39092 -db1 investing_db:investing_db:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
+    command: python data_worker.py -f predicts -t empty -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
 #      - ./services/kafka:/home/app
       - ./services/service_files:/home/app
