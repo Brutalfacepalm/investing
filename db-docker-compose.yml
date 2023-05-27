@@ -58,13 +58,13 @@ services:
     networks:
       postgres:
 #        ipv4_address: 172.16.2.6
-    links:
+    depends_on:
       - postgres
 
   airflow-init:
     << : *airflow-common
     container_name: airflow_init
-#    restart: on-failure
+    restart: on-failure
     entrypoint: /bin/bash
     command:
       -c "airflow db init && \
