@@ -33,10 +33,10 @@ services:
     container_name: postgres
     restart: always
     environment:
-      - POSTGRES_MULTIPLE_DATABASES=investing_db,airflow,mlflow
-      - POSTGRES_USER=investing_db
-      - POSTGRES_PASSWORD=investing_db
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_MULTIPLE_DATABASES: investing_db,airflow,mlflow
+      - POSTGRES_USER: investing_main_user
+      - POSTGRES_PASSWORD: investing_main_user
+      - PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
@@ -72,7 +72,7 @@ services:
           airflow users create --username admin --password admin --email admin@airflow.com \
             --role Admin --firstname Admin --lastname Admin && \
           airflow connections add --conn-uri \
-            postgres+psycopg2://investing_db:investing_db@postgres:5432/investing_db postgres_conn && \
+            postgres+psycopg2://investing_main_user:investing_main_user@postgres:5432/investing_db postgres_conn && \
           airflow connections add --conn-uri \
             mongo://operate_database:operate_database@192.168.1.15:27017 mongodb_conn && \
           airflow connections add --conn-uri http://export.finam.ru/ http_finam"
@@ -110,7 +110,7 @@ services:
     container_name: mlflow
     restart: on-failure
     command: mlflow server
-      --backend-store-uri postgresql+psycopg2://investing_db:investing_db@postgres:5432/mlflow
+      --backend-store-uri postgresql+psycopg2://investing_main_user:investing_main_user@postgres:5432/mlflow
       --default-artifact-root /mnt/mlruns
       --host 0.0.0.0
       --port 4040
