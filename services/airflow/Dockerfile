@@ -1,6 +1,7 @@
 FROM apache/airflow:2.4.3-python3.8
 
 USER root
+WORKDIR /opt/airflow/
 RUN mkdir -p lags dags plugins
 RUN chmod -R 777 lags dags plugins
 RUN apt-get update -y && apt-get install -y gcc && \
