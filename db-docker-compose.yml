@@ -72,9 +72,9 @@ services:
           airflow users create --username admin --password admin --email admin@airflow.com \
             --role Admin --firstname Admin --lastname Admin && \
           airflow connections add --conn-uri \
-            postgres+psycopg2://investing_db:investing_db@192.168.1.15:5432/investing_db postgres_conn && \
+            postgres+psycopg2://investing_db:investing_db@postgres:5432/investing_db postgres_conn && \
           airflow connections add --conn-uri \
-            mongo://operate_database:operate_database@mongo:27017 mongodb_conn && \
+            mongo://operate_database:operate_database@192.168.1.15:27017 mongodb_conn && \
           airflow connections add --conn-uri http://export.finam.ru/ http_finam"
     depends_on:
       - postgres
