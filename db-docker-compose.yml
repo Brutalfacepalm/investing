@@ -192,6 +192,8 @@ services:
       - ./services/service_files:/home/app
     depends_on:
       - kafka_feature_worker
+    networks:
+      postgres:
 
   kafka_feature_worker:
     build:
@@ -204,6 +206,8 @@ services:
       - ./services/service_files:/home/app
     depends_on:
       - kafka_predicts_worker
+    networks:
+      postgres:
 
   kafka_predicts_worker:
     build:
@@ -216,6 +220,8 @@ services:
       - ./services/service_files:/home/app
     depends_on:
       - broker2
+    networks:
+      postgres:
 
 
   nginx:
