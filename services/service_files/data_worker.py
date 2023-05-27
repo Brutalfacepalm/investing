@@ -46,14 +46,14 @@ def check_topics(from_topic, to_topic, bootstrap_servers):
     topics_to_create = []
     if from_topic not in bc.list_topics():
         if from_topic != 'empty':
-            topics_to_create.append(NewTopic(from_topic, 2, 1))
+            topics_to_create.append(NewTopic(from_topic, 1, 1))
         else:
             print('To topic is empty. Are you seriously?')
     else:
         print(f'All right, {from_topic} is exist.')
     if to_topic not in bc.list_topics():
         if to_topic != 'empty':
-            topics_to_create.append(NewTopic(to_topic, 2, 1))
+            topics_to_create.append(NewTopic(to_topic, 1, 1))
         else:
             print('To topic is empty. Are you seriously?')
     else:
