@@ -2,6 +2,7 @@ FROM apache/airflow:2.4.3-python3.8
 
 USER root
 RUN mkdir -p lags dags plugins
+RUN chmod -R 777 lags dags plugins
 RUN apt-get update -y && apt-get install -y gcc && \
   apt-get install -y --no-install-recommends gcc git libssl-dev g++ make && \
   cd /tmp && git clone https://github.com/edenhill/librdkafka.git && \
