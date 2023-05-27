@@ -1,5 +1,6 @@
 FROM apache/airflow:2.4.3-python3.8
 
+RUN mkdir lags dags plugins
 USER root
 RUN apt-get update -y && apt-get install -y gcc && \
   apt-get install -y --no-install-recommends gcc git libssl-dev g++ make && \
