@@ -1,6 +1,6 @@
 FROM apache/airflow:2.6.1-python3.10
 
-USER root
+# USER root
 # WORKDIR /opt/airflow/
 # RUN mkdir -p logs dags plugins
 # RUN chmod -R 777 logs dags plugins
@@ -9,8 +9,9 @@ USER root
 #   cd librdkafka && git checkout tags/v2.0.2 && \
 #   ./configure && make && make install && \
 #   cd ../ && rm -rf librdkafka
-USER airflow
+# USER airflow
 
+RUN pip install airflow
 RUN pip install apache-airflow[azure]
 RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
