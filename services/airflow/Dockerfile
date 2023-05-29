@@ -12,6 +12,7 @@ RUN apt-get install nano
 #   ./configure && make && make install && \
 #   cd ../ && rm -rf librdkafka
 
+USER airflow
 
 RUN pip install apache-airflow
 RUN pip install confluent-kafka==2.0.2
@@ -22,5 +23,3 @@ RUN pip install numba==0.56.4
 RUN pip install torch==2.0.1
 RUN pip install numpy==1.23.5
 RUN pip install scikit-learn
-
-USER airflow
