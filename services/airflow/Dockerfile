@@ -15,6 +15,7 @@ RUN export PATH=$PATH:~/.local/bin
 
 USER ${AIRFLOW_UID}
 
+RUN echo $PATH
 # RUN pip install apache-airflow
 RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
