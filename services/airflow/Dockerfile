@@ -11,8 +11,7 @@ FROM apache/airflow:2.6.1-python3.10
 #   cd ../ && rm -rf librdkafka
 # USER airflow
 
-RUN pip install airflow
-RUN pip install apache-airflow[azure]
+RUN pip install apache-airflow
 RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
 RUN pip install apache-airflow-providers-mongo==3.0.0
