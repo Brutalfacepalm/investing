@@ -12,9 +12,9 @@ RUN apt-get install nano
 #   ./configure && make && make install && \
 #   cd ../ && rm -rf librdkafka
 
-USER airflow
+USER ${AIRFLOW_UID}
 
-RUN pip install apache-airflow
+# RUN pip install apache-airflow
 RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
 RUN pip install apache-airflow-providers-mongo==3.0.0
