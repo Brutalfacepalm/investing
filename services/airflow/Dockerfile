@@ -14,7 +14,7 @@ RUN export PATH=$PATH:~/.local/bin
 #   ./configure && make && make install && \
 #   cd ../ && rm -rf librdkafka
 
-USER ${AIRFLOW_UID}
+USER 50000
 
 RUN echo $PATH
 RUN pip install apache-airflow
