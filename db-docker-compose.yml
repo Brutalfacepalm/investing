@@ -73,7 +73,8 @@ services:
           airflow connections add --conn-uri mongo://operate_database:operate_database@192.168.1.15:27017 mongodb_conn && \
           airflow connections add --conn-uri http://export.finam.ru/ http_finam"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_completed_successfully
     networks:
       postgres:
 
@@ -85,7 +86,8 @@ services:
       - 8080
     restart: always
     depends_on:
-      - airflow-init
+      airflow-init:
+        condition: service_completed_successfully
     networks:
       postgres:
 
@@ -95,7 +97,8 @@ services:
     command: airflow scheduler
     restart: always
     depends_on:
-      - airflow-init
+      airflow-init:
+        condition: service_completed_successfully
     networks:
       postgres:
 
