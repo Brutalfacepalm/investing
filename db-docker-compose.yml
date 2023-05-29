@@ -11,7 +11,7 @@ x-airflow-common:
     - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://investing_main_user:investing_main_user@postgres:5432/airflow
     - AIRFLOW__CORE__STORE_DAG_CODE=True
     - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
-    - AIRFLOW__CORE__FERNET_KEY=FB0o_zt4e3Ziq3LdUUO7F2Z95cvFFx16hU8jTeR1ASM=
+    - AIRFLOW__CORE__FERNET_KEY=''
     - AIRFLOW__CORE__LOGGING_LEVEL=INFO
     - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
     - AIRFLOW__CORE__DEFAULT_TIMEZONE=Europe/Moscow
@@ -68,7 +68,7 @@ services:
     restart: on-failure
     entrypoint: /bin/bash
     command:
-      -c "airflow db init && \
+      -c "echo $PATH && airflow db init && \
           airflow users create --username admin --password admin --email admin@airflow.com --role Admin --firstname Admin --lastname Admin && \
           airflow connections add --conn-uri postgres+psycopg2://investing_main_user:investing_main_user@postgres:5432/investing_db postgres_conn && \
           airflow connections add --conn-uri mongo://operate_database:operate_database@192.168.1.15:27017 mongodb_conn && \
