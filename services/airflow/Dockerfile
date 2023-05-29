@@ -4,7 +4,6 @@ USER root
 # WORKDIR /opt/airflow/
 # RUN mkdir -p logs dags plugins
 # RUN chmod -R 777 logs dags plugins
-RUN echo $PATH
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install nano
 RUN export PATH=$PATH:~/.local/bin
@@ -16,14 +15,12 @@ RUN export PATH=$PATH:~/.local/bin
 
 USER 50000
 
-RUN echo $PATH
 RUN pip install apache-airflow
 RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
 RUN pip install apache-airflow-providers-mongo==3.0.0
 RUN pip install holidays==0.14.2
 RUN pip install numba==0.56.4
-# RUN pip install torch==2.0.1
+RUN pip install torch==2.0.1
 RUN pip install numpy==1.23.5
-# RUN airflow
-# RUN pip install scikit-learn
+RUN pip install scikit-learn
