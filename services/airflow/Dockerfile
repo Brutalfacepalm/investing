@@ -20,6 +20,6 @@ RUN pip install airflow-provider-kafka==0.2.2
 RUN pip install apache-airflow-providers-mongo==3.0.0
 RUN pip install holidays==0.14.2
 RUN pip install numba==0.56.4
-RUN pip install torch==2.0.1
+# RUN pip install torch==2.0.1
 RUN pip install numpy==1.23.5
-RUN pip install scikit-learn
+# RUN pip install scikit-learn
