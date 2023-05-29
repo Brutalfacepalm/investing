@@ -13,13 +13,13 @@ from service_files.parser_data import Parser
 import json
 
 
-with open('./service_files/shares.json', 'r+') as f:
+with open('./dags/service_files/shares.json', 'r+') as f:
     shares = json.load(f)
 
-with open('./service_files/currencies.json', 'r+') as f:
+with open('./dags/service_files/currencies.json', 'r+') as f:
     currencies = json.load(f)
 
-with open('./service_files/features.json', 'r+') as f:
+with open('./dags/service_files/features.json', 'r+') as f:
     features = json.load(f)
 
 MONGO_DB_NAME = 'investing'

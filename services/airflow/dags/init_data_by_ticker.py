@@ -23,14 +23,14 @@ MAX_LEN_FEATURES_COLLECTION_MONGO = 400
 MAX_LEN_PREDICTIONS_COLLECTION_MONGO = 200
 PATH_MODE = 's3'
 REMOTE_CONNECTION = 's3:'
-MODEL_PATH = './service_files/model.mdl'
-SCALER_PATH = './service_files/scaler.pkl'
+MODEL_PATH = './dags/service_files/model.mdl'
+SCALER_PATH = './dags/service_files/scaler.pkl'
 
 
-with open('./service_files/currencies.json', 'r+') as f:
+with open('./dags/service_files/currencies.json', 'r+') as f:
     currencies = json.load(f)
 
-with open('./service_files/features.json', 'r+') as f:
+with open('./dags/service_files/features.json', 'r+') as f:
     features = json.load(f)
 
 

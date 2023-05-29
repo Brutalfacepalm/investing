@@ -10,18 +10,18 @@ from pymongo.write_concern import WriteConcern
 from service_files.parser_meta import ExporterMeta
 
 
-with open('./service_files/shares.json', 'r+') as f:
+with open('./dags/service_files/shares.json', 'r+') as f:
     shares = json.load(f)
 
-with open('./service_files/currencies.json', 'r+') as f:
+with open('./dags/service_files/currencies.json', 'r+') as f:
     currencies = json.load(f)
 
-with open('./service_files/features.json', 'r+') as f:
+with open('./dags/service_files/features.json', 'r+') as f:
     features = json.load(f)
 
 
 MONGO_DB_NAME = 'investing'
-META_PATH = './service_files/meta_tickers.csv'
+META_PATH = './dags/service_files/meta_tickers.csv'
 
 
 def fn_parse_meta():
