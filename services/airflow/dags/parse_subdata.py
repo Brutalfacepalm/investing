@@ -17,10 +17,10 @@ import json
 from urllib.parse import urlencode
 
 
-with open('./dags/service_files/currencies.json', 'r+') as f:
+with open('./service_files/currencies.json', 'r+') as f:
     currencies = json.load(f)
 
-with open('./dags/service_files/features.json', 'r+') as f:
+with open('./service_files/features.json', 'r+') as f:
     features = json.load(f)
 
 
