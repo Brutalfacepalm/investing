@@ -100,6 +100,8 @@ def parse_script_link(html, src_entry):
     :param src_entry:
     :return:
     """
+    print(src_entry)
+    print(html)
     re_src_entry = re.escape(src_entry)
     pattern = '<script src="([^"]*{}[^"]*)"'.format(re_src_entry)
     match = re.search(pattern, html)
