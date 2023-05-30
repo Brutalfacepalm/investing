@@ -2,6 +2,7 @@ from enum import IntEnum
 import operator
 import re
 import collections
+import collections.abc
 import six
 import click
 from operator import attrgetter
