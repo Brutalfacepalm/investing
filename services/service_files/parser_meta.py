@@ -103,8 +103,6 @@ def parse_script_link(html, src_entry):
     :param src_entry:
     :return:
     """
-    print(src_entry)
-    print(html)
     re_src_entry = re.escape(src_entry)
     pattern = '<script src="([^"]*{}[^"]*)"'.format(re_src_entry)
     match = re.search(pattern, html)
@@ -144,14 +142,13 @@ def fetch_url(url, lines=False):
     :return:
     """
     request = build_trusted_request(url)
-    print(request)
     try:
         fh = urlopen(request)
-        print(fh)
         if lines:
             response = fh.readlines()
         else:
             response = fh.read()
+        print(response)
     except IOError as e:
         raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
     try:
