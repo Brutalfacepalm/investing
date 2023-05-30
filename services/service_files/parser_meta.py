@@ -1,8 +1,7 @@
 from enum import IntEnum
 import operator
 import re
-import collections
-import collections.abc
+from collections.abc import Container
 import six
 import click
 from operator import attrgetter
@@ -56,7 +55,7 @@ def is_container(val):
     :param val:
     :return:
     """
-    is_c = isinstance(val, collections.Container)
+    is_c = isinstance(val, Container)
     return is_c and not isinstance(val, six.string_types) and not isinstance(val, bytes)
 
 
