@@ -149,8 +149,10 @@ def fetch_url(url, lines=False):
         else:
             response = fh.read()
         print(f'RESPONSE - {response}')
+        print(f'RESPONSE - {response.status_code}')
     except IOError as e:
         raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
+
     try:
         return smart_decode(response)
     except UnicodeDecodeError as e:
@@ -170,6 +172,8 @@ class ExporterMetaPage(object):
         :return:
         """
         html = self._fetcher(FINAM_ENTRY_URL)
+        print(f'RESPONSE - {html}')
+        print(f'RESPONSE - {html.status_code}')
         try:
             url = parse_script_link(html, FINAM_META_FILENAME)
         except ValueError as e:
