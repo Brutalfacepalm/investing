@@ -142,6 +142,7 @@ def fetch_url(url, lines=False):
     :return:
     """
     request = build_trusted_request(url)
+    print(request)
     try:
         fh = urlopen(request)
         if lines:
