@@ -148,8 +148,8 @@ def fetch_url(url, lines=False):
             response = fh.readlines()
         else:
             response = fh.read()
-        print(f'RESPONSE - {fh}')
-        print(f'RESPONSE - {fh.status_code}')
+        print(f'RESPONSE - {fh.msg}')
+        print(f'RESPONSE - {fh.status}')
     except IOError as e:
         raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
 
