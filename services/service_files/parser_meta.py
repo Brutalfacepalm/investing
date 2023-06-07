@@ -148,7 +148,7 @@ def fetch_url(url, lines=False):
             response = fh.readlines()
         else:
             response = fh.read()
-        print(response)
+        print(f'RESPONSE - {response}')
     except IOError as e:
         raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
     try:
@@ -173,8 +173,7 @@ class ExporterMetaPage(object):
         try:
             url = parse_script_link(html, FINAM_META_FILENAME)
         except ValueError as e:
-            raise FinamParsingError('Unable to parse meta url from html: {}'
-                                    .format(e))
+            raise FinamParsingError('Unable to parse meta url from html: {}'.format(e))
         return FINAM_BASE + url
 
 
