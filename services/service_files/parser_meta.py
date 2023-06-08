@@ -205,7 +205,7 @@ def fetch_url(url, lines=False, sel=False):
                 lambda driver: driver.find_element(*locator).get_attribute('outerHTML')
             )
         # print(f'RESPONSE SELENIUM - {response}')
-        # return response
+        return response
     else:
         request = build_trusted_request(url)
         # print(request)
