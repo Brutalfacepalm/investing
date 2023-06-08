@@ -73,7 +73,7 @@ class FetchMetaWebriver:
         if cls.driver and cls.pages_to_load_cur[id(cls.driver)] > 0:
             return self
         else:
-            chrome_service = Service(ChromeDriverManager(path='/usr/local/bin/'))
+            chrome_service = Service(ChromeDriverManager().install())
             chrome_options = Options()
             # Basic driver`s options
             chrome_options.add_argument('--no-sandbox')
