@@ -85,7 +85,7 @@ class FetchMetaWebriver:
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-dev-shm-usage")
             # chrome_options.add_argument("--remote-debugging-port=9222")
-            # chrome_options.add_argument(f'user-agent={FINAM_TRUSTED_USER_AGENT}')
+            chrome_options.add_argument(f'user-agent={FINAM_TRUSTED_USER_AGENT}')
             # Disable images and css loading
             prefs = {
                 "profile.managed_default_content_settings.images": 2,
