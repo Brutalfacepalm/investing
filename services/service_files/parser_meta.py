@@ -11,7 +11,7 @@ import pandas as pd
 from typing import Type, Union
 
 from selenium import webdriver
-# from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -73,7 +73,7 @@ class FetchMetaWebriver:
         if cls.driver and cls.pages_to_load_cur[id(cls.driver)] > 0:
             return self
         else:
-            # chrome_service = Service(ChromeDriverManager().install())
+            chrome_service = Service(executable_path='/usr/local/bin/chromedriver')
             chrome_options = Options()
             # Basic driver`s options
             chrome_options.add_argument('--disable-translate')
@@ -91,7 +91,7 @@ class FetchMetaWebriver:
             }
             chrome_options.add_experimental_option("prefs", prefs)
             # Setup driver and cache it inside the class
-            cls.driver = webdriver.Chrome(executable_path='/usr/local/bin', options=chrome_options)
+            cls.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
             cls.wait = WebDriverWait(cls.driver, cls.timeout)
             cls.pages_to_load_cur[id(self.driver)] = cls.pages_to_load_max
             return self
