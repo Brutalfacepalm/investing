@@ -79,7 +79,7 @@ class FetchMetaWebriver:
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--headless')
             chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument(f'user-agent={FINAM_TRUSTED_USER_AGENT}')
+            # chrome_options.add_argument(f'user-agent={FINAM_TRUSTED_USER_AGENT}')
             # chrome_options.add_argument('--disable-translate')
             # chrome_options.add_argument('--disable-extensions')
             # chrome_options.add_argument('--disable-notifications')
