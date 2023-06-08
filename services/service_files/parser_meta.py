@@ -74,7 +74,7 @@ class FetchMetaWebriver:
             return self
         else:
             # chrome_service = Service(ChromeDriverManager().install())
-            chrome_service = Service(executable_path='/usr/local/bin/')
+            chrome_service = Service(executable_path='/usr/local/bin/chromedriver')
             chrome_options = Options()
             # Basic driver`s options
             chrome_options.add_argument('--disable-translate')
