@@ -7,6 +7,12 @@ USER root
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install nano
 RUN export PATH=$PATH:~/.local/bin
+RUN apt-get install -y wget xvfb unzip
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+RUN apt-get update -y
+RUN apt-get install -y google-chrome-stable
+
 # RUN apt-get update -y && apt-get install -y gcc && apt-get install -y --no-install-recommends gcc git libssl-dev g++ make && \
 #   cd /tmp && git clone https://github.com/edenhill/librdkafka.git && \
 #   cd librdkafka && git checkout tags/v2.0.2 && \
