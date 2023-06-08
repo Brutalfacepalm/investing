@@ -204,26 +204,26 @@ def fetch_url(url, lines=False, sel=False):
             response = fetcher.wait.until(
                 lambda driver: driver.find_element(*locator).get_attribute('outerHTML')
             )
-        print(f'RESPONSE SELENIUM - {response}')
+        # print(f'RESPONSE SELENIUM - {response}')
         # return response
     else:
         request = build_trusted_request(url)
-        print(request)
+        # print(request)
         try:
             fh = urlopen(request)
             if lines:
                 response = fh.readlines()
             else:
                 response = fh.read()
-            print(f'RESPONSE - {fh.msg}')
-            print(f'RESPONSE - {fh.status}')
+            # print(f'RESPONSE - {fh.msg}')
+            # print(f'RESPONSE - {fh.status}')
         except IOError as e:
             raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
 
-    try:
-        return smart_decode(response)
-    except UnicodeDecodeError as e:
-        raise FinamDownloadError('Unable to decode: {}'.format(e))
+        try:
+            return smart_decode(response)
+        except UnicodeDecodeError as e:
+            raise FinamDownloadError('Unable to decode: {}'.format(e))
 
 
 class ExporterMetaPage(object):
