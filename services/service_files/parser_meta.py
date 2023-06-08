@@ -77,9 +77,10 @@ class FetchMetaWebriver:
             chrome_service = Service(executable_path='/usr/local/bin/chromedriver')
             chrome_options = Options()
             # Basic driver`s options
-            chrome_options.add_argument('--headless')
+            # chrome_options.add_argument('--headless')
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument("--disable-dev-shm-usage")
+            # chrome_options.add_argument("--remote-debugging-port=9222")
             # chrome_options.add_argument(f'user-agent={FINAM_TRUSTED_USER_AGENT}')
             chrome_options.add_argument('--disable-translate')
             chrome_options.add_argument('--disable-extensions')
