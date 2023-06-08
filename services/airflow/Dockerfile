@@ -28,7 +28,8 @@ RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 
 USER 50000
 
-RUN pip install apache-airflow
+RUN pip install --upgrade requests
+RUN pip install apache-airflow==2.6.1
 RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
 RUN pip install apache-airflow-providers-mongo==3.0.0
@@ -38,4 +39,4 @@ RUN pip install torch==2.0.1
 RUN pip install numpy==1.23.5
 RUN pip install scikit-learn==1.2.2
 RUN pip install selenium==4.10.0
-RUN pip install webdriver-manager==3.8.6
+RUN pip install webdriver_manager
