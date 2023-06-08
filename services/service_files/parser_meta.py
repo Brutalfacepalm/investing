@@ -89,7 +89,7 @@ class FetchMetaWebriver:
             }
             options.add_experimental_option("prefs", prefs)
             # Setup driver and cache it inside the class
-            cls.driver = webdriver.Chrome(service=chrome_service, options=options)
+            cls.driver = webdriver.Chrome('/usr/local/bin', options=options)
             cls.wait = WebDriverWait(cls.driver, cls.timeout)
             cls.pages_to_load_cur[id(self.driver)] = cls.pages_to_load_max
             return self
