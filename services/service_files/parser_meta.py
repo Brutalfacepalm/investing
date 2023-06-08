@@ -8,7 +8,15 @@ from operator import attrgetter
 from urllib.request import Request, urlopen
 import json
 import pandas as pd
-from typing import Type, Union
+from typing import Union
+
+import urllib
+import urllib.request
+import html.parser
+import requests
+from requests.exceptions import HTTPError
+from socket import error as SocketError
+from http.cookiejar import CookieJar
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -16,7 +24,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager
 
 __all__ = ['FinamExportError', 'FinamDownloadError', 'FinamThrottlingError', 'FinamParsingError',
            'FinamObjectNotFoundError', 'FinamTooLongTimeframeError', 'FinamAlreadyInProgressError']
@@ -197,6 +205,7 @@ def fetch_url(url, lines=False, sel=False):
     :param sel:
     :return:
     """
+
     if sel:
         locator = (By.XPATH, "//*")
         with FetchMetaWebriver() as fetcher:
@@ -207,24 +216,45 @@ def fetch_url(url, lines=False, sel=False):
         # print(f'RESPONSE SELENIUM - {response}')
         return response
     else:
-        print(url)
-        request = build_trusted_request(url)
-        print(request)
         try:
-            fh = urlopen(request)
-            if lines:
-                response = fh.readlines()
-            else:
-                response = fh.read()
-            # print(f'RESPONSE - {fh.msg}')
-            # print(f'RESPONSE - {fh.status}')
-        except IOError as e:
-            raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
-
-        try:
-            return smart_decode(response)
-        except UnicodeDecodeError as e:
-            raise FinamDownloadError('Unable to decode: {}'.format(e))
+            # url_data = 'https://www.finam.ru/' + 'cache/N72Hgd54/icharts/icharts.js'
+            # req = urllib.request.Request(url_data, None, {
+            #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
+            #     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            #     # 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+            #     # 'Accept-Encoding': 'gzip, deflate, sdch',
+            #     # 'Accept-Language': 'ru-RU,en-US,en;q=0.8',
+            #     # 'Connection': 'keep-alive'
+            # })
+            request = build_trusted_request(url)
+            cj = CookieJar()
+            opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+            response = opener.open(request)
+            raw_response = response.read()
+            raw_response = smart_decode(raw_response)
+            response.close()
+            return raw_response
+        except urllib.request.HTTPError as inst:
+            output = format(inst)
+            print(output)
+        # print(url)
+        # request = build_trusted_request(url)
+        # print(request)
+        # try:
+        #     fh = urlopen(request)
+        #     if lines:
+        #         response = fh.readlines()
+        #     else:
+        #         response = fh.read()
+        #     # print(f'RESPONSE - {fh.msg}')
+        #     # print(f'RESPONSE - {fh.status}')
+        # except IOError as e:
+        #     raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
+        #
+        # try:
+        #     return smart_decode(response)
+        # except UnicodeDecodeError as e:
+        #     raise FinamDownloadError('Unable to decode: {}'.format(e))
 
 
 class ExporterMetaPage(object):
