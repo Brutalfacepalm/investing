@@ -230,7 +230,10 @@ def fetch_url(url, lines=False, sel=False):
             cj = CookieJar()
             opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
             response = opener.open(request)
-            raw_response = response.read()
+            if lines:
+                raw_response = response.readlines()
+            else:
+                raw_response = response.read()
             raw_response = smart_decode(raw_response)
             response.close()
             return raw_response
