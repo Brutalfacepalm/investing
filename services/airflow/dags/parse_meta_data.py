@@ -58,6 +58,7 @@ def fn_load_meta_to_mongodb(**context):
 with DAG(
         dag_id='001_parse_meta_data',
         start_date=datetime(2022, 12, 2, 15, tz="Europe/Moscow"),
+        catchup=False,
         schedule_interval='0 0 1 * *',
 ) as dag:
     parse_meta = PythonOperator(
