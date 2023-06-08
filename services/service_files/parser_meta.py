@@ -80,6 +80,7 @@ class FetchMetaWebriver:
             chrome_options.add_argument('--disable-extensions')
             chrome_options.add_argument('--disable-notifications')
             # The following options is mandatory if you are going to run it in docker container
+            chrome_options.add_argument('--headless')
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-dev-shm-usage")
@@ -90,7 +91,7 @@ class FetchMetaWebriver:
             }
             chrome_options.add_experimental_option("prefs", prefs)
             # Setup driver and cache it inside the class
-            cls.driver = webdriver.Chrome('/usr/local/bin', chrome_options=chrome_options)
+            cls.driver = webdriver.Chrome('/usr/local/bin', options=chrome_options)
             cls.wait = WebDriverWait(cls.driver, cls.timeout)
             cls.pages_to_load_cur[id(self.driver)] = cls.pages_to_load_max
             return self
