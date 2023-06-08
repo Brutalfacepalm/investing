@@ -16,7 +16,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
-# from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.chrome import ChromeDriverManager
 
 __all__ = ['FinamExportError', 'FinamDownloadError', 'FinamThrottlingError', 'FinamParsingError',
            'FinamObjectNotFoundError', 'FinamTooLongTimeframeError', 'FinamAlreadyInProgressError']
@@ -73,7 +73,7 @@ class FetchMetaWebriver:
         if cls.driver and cls.pages_to_load_cur[id(cls.driver)] > 0:
             return self
         else:
-            chrome_service = Service(executable_path='/usr/local/bin/chromedriver')
+            chrome_service = Service(ChromeDriverManager(path='/usr/local/bin/'))
             chrome_options = Options()
             # Basic driver`s options
             chrome_options.add_argument('--no-sandbox')
