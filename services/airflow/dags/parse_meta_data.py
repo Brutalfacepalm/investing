@@ -45,6 +45,7 @@ def fn_load_meta_to_mongodb(**context):
         if 'meta' in db.list_collection_names():
             db.drop_collection('meta')
         data = json.loads(context['meta_data'])
+        print(len(data))
         to_insert = list(map(lambda x: dict(zip(['id', 'name', 'code', 'market', 'url'], x)), data))
 
         collection = db['meta']
