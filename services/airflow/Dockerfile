@@ -19,6 +19,8 @@ RUN apt-get install -y google-chrome-stable
 RUN apt-get install -yqq unzip
 RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
 RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+RUN chmod 777 /usr/local/bin/chromedriver
+RUN chmod 777 /usr/bin/google-chrome
 
 # RUN apt-get update -y && apt-get install -y gcc && apt-get install -y --no-install-recommends gcc git libssl-dev g++ make && \
 #   cd /tmp && git clone https://github.com/edenhill/librdkafka.git && \
