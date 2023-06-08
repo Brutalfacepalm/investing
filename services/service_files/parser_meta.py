@@ -77,14 +77,14 @@ class FetchMetaWebriver:
             chrome_service = Service(executable_path='/usr/local/bin/chromedriver')
             chrome_options = Options()
             # Basic driver`s options
-            chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument("--disable-dev-shm-usage")
             # chrome_options.add_argument(f'user-agent={FINAM_TRUSTED_USER_AGENT}')
-            # chrome_options.add_argument('--disable-translate')
-            # chrome_options.add_argument('--disable-extensions')
-            # chrome_options.add_argument('--disable-notifications')
-            # chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument('--disable-translate')
+            chrome_options.add_argument('--disable-extensions')
+            chrome_options.add_argument('--disable-notifications')
+            chrome_options.add_argument("--disable-gpu")
             # Disable images and css loading
             prefs = {
                 "profile.managed_default_content_settings.images": 2,
@@ -92,7 +92,7 @@ class FetchMetaWebriver:
             }
             chrome_options.add_experimental_option("prefs", prefs)
             # Setup driver and cache it inside the class
-            cls.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+            cls.driver = webdriver.Chrome(service=chrome_service, options=chrome_options) # check change
             cls.wait = WebDriverWait(cls.driver, cls.timeout)
             cls.pages_to_load_cur[id(self.driver)] = cls.pages_to_load_max
             return self
