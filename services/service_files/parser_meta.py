@@ -8,6 +8,14 @@ from operator import attrgetter
 from urllib.request import Request, urlopen
 import json
 import pandas as pd
+from typing import Type, Union
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 
 __all__ = ['FinamExportError', 'FinamDownloadError', 'FinamThrottlingError', 'FinamParsingError',
            'FinamObjectNotFoundError', 'FinamTooLongTimeframeError', 'FinamAlreadyInProgressError']
@@ -50,6 +58,49 @@ class FinamTooLongTimeframeError(FinamExportError):
 
 class FinamAlreadyInProgressError(FinamExportError):
     pass
+
+
+class FetchMetaWebriver:
+    driver: Union[WebDriver, None] = None
+    pages_to_load_max = 0
+    pages_to_load_cur = {}
+    timeout = 30
+    wait: WebDriverWait
+
+    def __enter__(self):
+        cls = self.__class__
+        if cls.driver and cls.pages_to_load_cur[id(cls.driver)] > 0:
+            return self
+        else:
+            chrome_service = Service(ChromeDriverManager().install())
+            options = webdriver.ChromeOptions()
+            # Basic driver`s options
+            options.add_argument('--disable-translate')
+            options.add_argument('--disable-extensions')
+            options.add_argument('--disable-notifications')
+            # The following options is mandatory if you are going to run it in docker container
+            options.add_argument('--no-sandbox')
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-dev-shm-usage")
+            # Disable images and css loading
+            prefs = {
+                "profile.managed_default_content_settings.images": 2,
+                "profile.managed_default_content_settings.stylesheets": 2,
+            }
+            options.add_experimental_option("prefs", prefs)
+            # Setup driver and cache it inside the class
+            cls.driver = webdriver.Chrome(service=chrome_service, options=options)
+            cls.wait = WebDriverWait(cls.driver, cls.timeout)
+            cls.pages_to_load_cur[id(self.driver)] = cls.pages_to_load_max
+            return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        cls = self.__class__
+        cls.pages_to_load_cur[id(self.driver)] -= 1
+        if any((exc_type, exc_val, exc_tb)):
+            self.driver.quit()
+        if cls.pages_to_load_cur[id(self.driver)] == 0:
+            self.driver.quit()
 
 
 def is_container(val):
@@ -134,30 +185,41 @@ class LookupComparator(IntEnum):
     CONTAINS = 3
 
 
-def fetch_url(url, lines=False):
+def fetch_url(url, lines=False, sel=False):
     """
 
     :param url:
     :param lines:
+    :param sel:
     :return:
     """
-    request = build_trusted_request(url)
-    print(request)
-    try:
-        fh = urlopen(request)
-        if lines:
-            response = fh.readlines()
-        else:
-            response = fh.read()
-        print(f'RESPONSE - {fh.msg}')
-        print(f'RESPONSE - {fh.status}')
-    except IOError as e:
-        raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
+    if sel:
+        locator = (By.XPATH, "//*")
+        with FetchMetaWebriver() as fetcher:
+            fetcher.driver.get(FINAM_ENTRY_URL)
+            response = fetcher.wait.until(
+                lambda driver: driver.find_element(*locator).get_attribute('outerHTML')
+            )
+        print(response)
+        return response
+    else:
+        request = build_trusted_request(url)
+        print(request)
+        try:
+            fh = urlopen(request)
+            if lines:
+                response = fh.readlines()
+            else:
+                response = fh.read()
+            print(f'RESPONSE - {fh.msg}')
+            print(f'RESPONSE - {fh.status}')
+        except IOError as e:
+            raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
 
-    try:
-        return smart_decode(response)
-    except UnicodeDecodeError as e:
-        raise FinamDownloadError('Unable to decode: {}'.format(e))
+        try:
+            return smart_decode(response)
+        except UnicodeDecodeError as e:
+            raise FinamDownloadError('Unable to decode: {}'.format(e))
 
 
 class ExporterMetaPage(object):
@@ -172,7 +234,7 @@ class ExporterMetaPage(object):
 
         :return:
         """
-        html = self._fetcher(FINAM_ENTRY_URL)
+        html = self._fetcher(FINAM_ENTRY_URL, sel=True)
         print(f'RESPONSE - {html}')
         try:
             url = parse_script_link(html, FINAM_META_FILENAME)
