@@ -11,11 +11,12 @@ import pandas as pd
 from typing import Type, Union
 
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+# from webdriver_manager.chrome import ChromeDriverManager
 
 __all__ = ['FinamExportError', 'FinamDownloadError', 'FinamThrottlingError', 'FinamParsingError',
            'FinamObjectNotFoundError', 'FinamTooLongTimeframeError', 'FinamAlreadyInProgressError']
@@ -72,24 +73,24 @@ class FetchMetaWebriver:
         if cls.driver and cls.pages_to_load_cur[id(cls.driver)] > 0:
             return self
         else:
-            chrome_service = Service(ChromeDriverManager().install())
-            options = webdriver.ChromeOptions()
+            # chrome_service = Service(ChromeDriverManager().install())
+            chrome_options = Options()
             # Basic driver`s options
-            options.add_argument('--disable-translate')
-            options.add_argument('--disable-extensions')
-            options.add_argument('--disable-notifications')
+            chrome_options.add_argument('--disable-translate')
+            chrome_options.add_argument('--disable-extensions')
+            chrome_options.add_argument('--disable-notifications')
             # The following options is mandatory if you are going to run it in docker container
-            options.add_argument('--no-sandbox')
-            options.add_argument("--disable-gpu")
-            options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-dev-shm-usage")
             # Disable images and css loading
             prefs = {
                 "profile.managed_default_content_settings.images": 2,
                 "profile.managed_default_content_settings.stylesheets": 2,
             }
-            options.add_experimental_option("prefs", prefs)
+            chrome_options.add_experimental_option("prefs", prefs)
             # Setup driver and cache it inside the class
-            cls.driver = webdriver.Chrome('/usr/local/bin', options=options)
+            cls.driver = webdriver.Chrome('/usr/local/bin', chrome_options=chrome_options)
             cls.wait = WebDriverWait(cls.driver, cls.timeout)
             cls.pages_to_load_cur[id(self.driver)] = cls.pages_to_load_max
             return self
