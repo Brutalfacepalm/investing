@@ -203,7 +203,7 @@ def fetch_url(url, lines=False, sel=False):
             fetcher.driver.get(FINAM_ENTRY_URL)
             response = fetcher.wait.until(
                 lambda driver: driver.find_element(*locator).get_attribute('outerHTML')
-            ).read()
+            )
         print(f'RESPONSE SELENIUM - {response}')
         # return response
     else:
