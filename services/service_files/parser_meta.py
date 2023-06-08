@@ -203,9 +203,9 @@ def fetch_url(url, lines=False, sel=False):
             fetcher.driver.get(FINAM_ENTRY_URL)
             response = fetcher.wait.until(
                 lambda driver: driver.find_element(*locator).get_attribute('outerHTML')
-            )
+            ).read()
         print(f'RESPONSE SELENIUM - {response}')
-        return response
+        # return response
     else:
         request = build_trusted_request(url)
         print(request)
@@ -220,10 +220,10 @@ def fetch_url(url, lines=False, sel=False):
         except IOError as e:
             raise FinamDownloadError('Unable to load {}: {}'.format(url, e))
 
-        try:
-            return smart_decode(response)
-        except UnicodeDecodeError as e:
-            raise FinamDownloadError('Unable to decode: {}'.format(e))
+    try:
+        return smart_decode(response)
+    except UnicodeDecodeError as e:
+        raise FinamDownloadError('Unable to decode: {}'.format(e))
 
 
 class ExporterMetaPage(object):
@@ -239,9 +239,10 @@ class ExporterMetaPage(object):
         :return:
         """
         html = self._fetcher(FINAM_ENTRY_URL, sel=True)
-        print(f'RESPONSE - {html}')
+        # print(f'RESPONSE - {html}')
         try:
             url = parse_script_link(html, FINAM_META_FILENAME)
+            print(f'FIND URL - {url}')
         except ValueError as e:
             raise FinamParsingError('Unable to parse meta url from html: {}'.format(e))
         return FINAM_BASE + url
