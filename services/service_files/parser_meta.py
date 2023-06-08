@@ -207,8 +207,9 @@ def fetch_url(url, lines=False, sel=False):
         # print(f'RESPONSE SELENIUM - {response}')
         return response
     else:
+        print(url)
         request = build_trusted_request(url)
-        # print(request)
+        print(request)
         try:
             fh = urlopen(request)
             if lines:
