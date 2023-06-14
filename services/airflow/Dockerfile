@@ -1,9 +1,9 @@
 FROM apache/airflow:2.6.1-python3.10
 
 USER root
-# WORKDIR /opt/airflow/
-# RUN mkdir -p logs dags plugins
-# RUN chmod -R 777 logs dags plugins
+WORKDIR /opt/airflow/
+RUN mkdir -p logs dags plugins
+RUN chmod -R 777 logs dags plugins
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install nano
 RUN export PATH=$PATH:~/.local/bin
