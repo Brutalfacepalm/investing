@@ -4,7 +4,6 @@ USER root
 WORKDIR /opt/airflow/
 RUN mkdir -p logs dags plugins
 RUN chmod -R 777 logs dags plugins
-RUN export PATH=$PATH:~/.local/bin
 
 #   cd /tmp && git clone https://github.com/edenhill/librdkafka.git && \
 #   cd librdkafka && git checkout tags/v2.0.2 && \
@@ -12,11 +11,11 @@ RUN export PATH=$PATH:~/.local/bin
 #   cd ../ && rm -rf librdkafka
 
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install nano
+RUN apt-get install -yf nano
 # RUN apt-get update -y && apt-get install -y gcc && apt-get install -y --no-install-recommends gcc git libssl-dev g++ make
 
 ### Install Google Chrome
-RUN apt-get install -y wget xvfb unzip
+RUN apt-get install -yf wget xvfb unzip
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
 RUN apt-get update -y
@@ -29,6 +28,7 @@ RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 RUN chmod 777 /usr/local/bin/chromedriver
 RUN chmod 777 /usr/bin/google-chrome
 
+RUN export PATH=$PATH:~/.local/bin
 
 USER 1000
 
