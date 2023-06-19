@@ -8,7 +8,7 @@ x-airflow-common:
     - AIRFLOW__CORE__EXECUTOR=LocalExecutor
     - AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS=False
     - AIRFLOW__CORE__LOAD_EXAMPLES=False
-    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres://investing_main_user:investing_main_user@postgres:5432/airflow
+    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://investing_main_user:investing_main_user@postgres:5432/airflow
     - AIRFLOW__CORE__STORE_DAG_CODE=True
     - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
     - AIRFLOW__CORE__FERNET_KEY=hjIFXCPQL6ZZx-dN7Kpr5yULTMFmLK-skgH9KdKeA1I=
@@ -65,11 +65,11 @@ services:
     << : *airflow-common
     container_name: airflow_init
 #    restart: on-failure
-    entrypoint: /bin/bash
+#    entrypoint: /bin/bash
     command: >
       bash -c "airflow db init &&
                 airflow users create --username admin --password admin --email admin@airflow.com --role Admin --firstname Admin --lastname Admin &&
-                airflow connections add --conn-uri postgres://investing_main_user:investing_main_user@postgres:5432/investing_db postgres_conn &&
+                airflow connections add --conn-uri postgresql+psycopg2://investing_main_user:investing_main_user@postgres:5432/investing_db postgres_conn &&
                 airflow connections add --conn-uri mongo://operate_database:operate_database@192.168.1.13:27017 mongodb_conn &&
                 airflow connections add --conn-uri http://export.finam.ru/ http_finam"
     depends_on:
