@@ -36,7 +36,7 @@ RUN chmod 777 /usr/bin/google-chrome
 
 USER 1000
 
-RUN pip install --upgrade requests
+# RUN pip install --upgrade requests
 RUN pip install apache-airflow==2.6.1
 RUN pip install confluent-kafka==2.0.2
 RUN pip install airflow-provider-kafka==0.2.2
