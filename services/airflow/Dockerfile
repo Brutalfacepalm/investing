@@ -4,6 +4,7 @@ USER root
 WORKDIR /opt/airflow/
 RUN mkdir -p logs dags plugins
 RUN chmod -R 777 logs dags plugins
+RUN export PATH=$PATH:~/.local/bin
 
 #   cd /tmp && git clone https://github.com/edenhill/librdkafka.git && \
 #   cd librdkafka && git checkout tags/v2.0.2 && \
@@ -12,7 +13,6 @@ RUN chmod -R 777 logs dags plugins
 
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install nano
-RUN export PATH=$PATH:~/.local/bin
 # RUN apt-get update -y && apt-get install -y gcc && apt-get install -y --no-install-recommends gcc git libssl-dev g++ make
 
 ### Install Google Chrome
