@@ -29,10 +29,10 @@ RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 RUN chmod 777 /usr/local/bin/chromedriver
 RUN chmod 777 /usr/bin/google-chrome
 
-RUN export PATH=$PATH:~/.local/bin
-RUN ls -l
-RUN chmod -R 777 /home/airflow/.local/bin
-RUN chmod -R 777 /.local
+# RUN export PATH=$PATH:~/.local/bin
+# RUN ls -l
+# RUN chmod -R 777 /home/airflow/.local/bin
+# RUN chmod -R 777 /.local
 
 USER 1000
 
