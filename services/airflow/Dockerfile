@@ -10,10 +10,10 @@ RUN chmod -R 777 logs dags plugins
 #   ./configure && make && make install && \
 #   cd ../ && rm -rf librdkafka
 
-RUN apt-get update -y
+RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install nano
-# RUN export PATH=$PATH:~/.local/bin
-RUN apt-get update -y && apt-get install -y gcc && apt-get install -y --no-install-recommends gcc git libssl-dev g++ make
+RUN export PATH=$PATH:~/.local/bin
+# RUN apt-get update -y && apt-get install -y gcc && apt-get install -y --no-install-recommends gcc git libssl-dev g++ make
 
 ### Install Google Chrome
 RUN apt-get install -y wget xvfb unzip
