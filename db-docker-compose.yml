@@ -11,7 +11,7 @@ x-airflow-common:
     - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres://investing_main_user:investing_main_user@postgres:5432/airflow
     - AIRFLOW__CORE__STORE_DAG_CODE=True
     - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
-    - AIRFLOW__CORE__FERNET_KEY='hjIFXCPQL6ZZx-dN7Kpr5yULTMFmLK-skgH9KdKeA1I='
+    - AIRFLOW__CORE__FERNET_KEY=hjIFXCPQL6ZZx-dN7Kpr5yULTMFmLK-skgH9KdKeA1I=
     - AIRFLOW__CORE__LOGGING_LEVEL=INFO
     - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
     - AIRFLOW__CORE__DEFAULT_TIMEZONE=Europe/Moscow
@@ -65,7 +65,7 @@ services:
     << : *airflow-common
     container_name: airflow_init
 #    restart: on-failure
-#    entrypoint: /bin/bash
+    entrypoint: /bin/bash
     command: >
       bash -c "airflow db init &&
                 airflow users create --username admin --password admin --email admin@airflow.com --role Admin --firstname Admin --lastname Admin &&
