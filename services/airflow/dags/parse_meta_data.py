@@ -30,7 +30,7 @@ def fn_parse_meta():
     df_cleaned = df[df['market'].isin([1])].groupby('code').agg(lambda x: set([i for i in x]))
     df_cleaned = df.merge(df_cleaned['url'].apply(lambda x: min(x, key=len)).reset_index(), on=['code', 'url'])
     df_cleaned = pd.concat([df_cleaned,
-                            df[(df['market'] == 5) & df['code'].isin(currencies)],
+                            df[(df['market'] == 5)],
                             df[df['market'].isin([14, 17, 24, 25])]])
     df_cleaned.to_csv(META_PATH)
     return json.dumps(df_cleaned.to_numpy().tolist())
