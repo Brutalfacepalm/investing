@@ -30,8 +30,8 @@ RUN chmod 777 /usr/local/bin/chromedriver
 RUN chmod 777 /usr/bin/google-chrome
 
 RUN export PATH=$PATH:~/.local/bin
-RUN chmod -R 777 /home/airflow/.local/bin
-RUN chmod -R 777 /.local/bin
+# RUN chmod -R 777 /home/airflow/.local/bin
+# RUN chmod -R 777 /.local/bin
 
 USER 1000
 
