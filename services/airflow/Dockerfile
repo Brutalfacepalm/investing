@@ -11,7 +11,7 @@ RUN apt-get update -y && apt-get install -y gcc && apt-get install -y --no-insta
 
 RUN mkdir -p logs dags plugins
 RUN chmod -R 777 logs dags plugins
-RUN apt-get update -y && apt-get upgrade -y
+# RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install nano
 RUN export PATH=$PATH:~/.local/bin
 
