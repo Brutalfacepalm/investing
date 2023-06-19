@@ -34,8 +34,9 @@ RUN chmod 777 /usr/bin/google-chrome
 # RUN chmod -R 777 /home/airflow/.local/bin
 # RUN chmod -R 777 /.local
 
+USER airflow
 
-# RUN pip install --upgrade requests
+RUN pip install --upgrade requests --user
 RUN pip install apache-airflow==2.6.1 --user
 RUN pip install confluent-kafka==2.0.2 --user
 RUN pip install airflow-provider-kafka==0.2.2 --user
@@ -48,4 +49,3 @@ RUN pip install scikit-learn==1.2.2 --user
 RUN pip install selenium==4.10.0 --user
 RUN pip install webdriver_manager --user
 
-USER 1000
