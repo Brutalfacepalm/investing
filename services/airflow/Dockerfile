@@ -37,14 +37,14 @@ RUN chmod 777 /usr/bin/google-chrome
 USER 1000
 
 # RUN pip install --upgrade requests
-RUN pip install apache-airflow==2.6.1
-RUN pip install confluent-kafka==2.0.2
-RUN pip install airflow-provider-kafka==0.2.2
-RUN pip install apache-airflow-providers-mongo==3.0.0
-RUN pip install holidays==0.14.2
-RUN pip install numba==0.56.4
-RUN pip install torch==2.0.1
-RUN pip install numpy==1.23.5
-RUN pip install scikit-learn==1.2.2
-RUN pip install selenium==4.10.0
-RUN pip install webdriver_manager
+RUN pip install apache-airflow==2.6.1 --user
+RUN pip install confluent-kafka==2.0.2 --user
+RUN pip install airflow-provider-kafka==0.2.2 --user
+RUN pip install apache-airflow-providers-mongo==3.0.0 --user
+RUN pip install holidays==0.14.2 --user
+RUN pip install numba==0.56.4 --user
+RUN pip install torch==2.0.1 --user
+RUN pip install numpy==1.23.5 --user
+RUN pip install scikit-learn==1.2.2 --user
+RUN pip install selenium==4.10.0 --user
+RUN pip install webdriver_manager --user
