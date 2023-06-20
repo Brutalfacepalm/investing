@@ -108,7 +108,7 @@ class Parser:
                 return None
         else:
             code = self.ticker
-            curr_df = self.meta_information[(self.ticker in self.meta_information['code']) &
+            curr_df = self.meta_information[(self.meta_information['code'].str.contains(self.ticker, regex=False)) &
                                             (self.meta_information['market'].isin([1, 5, 24, 25, 45]))]
 
         self.em = curr_df['id'].values[0]
