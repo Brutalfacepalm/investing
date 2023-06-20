@@ -179,7 +179,7 @@ def fn_get_endpoint(execution_date, **context):
     endpoints = {}
     for ticker_subdata in context['currencies']:
         code = ticker_subdata.upper()
-        curr_df = meta[(meta['code'] == code) & (meta['market'].isin([5, 45]))]
+        curr_df = meta[(meta['code'].str.contains(code, regex=False)) & (meta['market'].isin([5, 45]))]
         em = curr_df['id'].values[0]
         market = curr_df['market'].values[0]
 
