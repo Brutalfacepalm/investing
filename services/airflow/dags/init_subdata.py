@@ -11,6 +11,7 @@ from contextlib import closing
 
 from service_files.parser_data import Parser
 import json
+import re
 
 
 with open('./dags/service_files/shares.json', 'r+') as f:
@@ -192,6 +193,7 @@ def fn_postgres_load_subdata(**context):
     hook = SkipConflictPostgresHook(postgres_conn_id=context['postgres_conn_id'])
     data = json.loads(context['parse_data'])
     for k, v in data.items():
+        k = "".join(re.findall(r"(\w*)", k))
         hook.insert_rows(table=k, rows=v, resolve_conflict='time')
 
 
@@ -208,7 +210,8 @@ with DAG(
     postgres_create = PostgresOperator(
         task_id='postgres_create',
         postgres_conn_id="postgres_conn",
-        sql='\n'.join([f'DROP TABLE IF EXISTS {t}; \n CREATE TABLE IF NOT EXISTS {t} (time timestamp UNIQUE NOT NULL, close float);' for t in currencies + features]))
+        sql='\n'.join(['DROP TABLE IF EXISTS {}; \n CREATE TABLE IF NOT EXISTS {} (time timestamp UNIQUE NOT NULL, close float);'.format("".join(re.findall(r"(\w*)", t)),
+                                                                                                                                         "".join(re.findall(r"(\w*)", t))) for t in currencies + features]))
     mongo_create = PythonOperator(
         task_id="mongo_create",
         python_callable=fn_mongodb_create_collection,
