@@ -134,7 +134,7 @@ def fn_parse_subdata(execution_date, **context):
         date_start = '01.01.2012 00:00:00'
         date_end = execution_date.in_timezone("Europe/Moscow").add(days=-1).strftime("%d.%m.%Y 23:00:00")
 
-        parser_ticker = Parser(ticker_subdata.upper(),
+        parser_ticker = Parser(ticker_subdata,
                                date_start,
                                date_end,
                                split_period='year',
