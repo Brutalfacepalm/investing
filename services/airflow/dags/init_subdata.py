@@ -85,7 +85,7 @@ def fn_mongodb_create_collection(**context):
             if ticker_subdata in db.list_collection_names():
                 db.drop_collection(ticker_subdata)
 
-            db.create_collection(name=ticker_subdata,
+            db.create_collection(name="".join(re.findall(r"(\w*)", ticker_subdata)).upper(),
                                  capped=True,
                                  size=2128 * MAX_LEN_DATA_COLLECTION_MONGO * 2,
                                  max=MAX_LEN_DATA_COLLECTION_MONGO * 2)
@@ -174,6 +174,7 @@ def fn_mongodb_load_subdata(**context):
         db = client[db_name]
         data = json.loads(context['parse_data'])
         for k, v in data.items():
+            k = "".join(re.findall(r"(\w*)", k)).upper()
             to_insert = list(
                 map(lambda x: dict(zip(['time', 'close'], x)), v))
 
