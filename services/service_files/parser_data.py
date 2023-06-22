@@ -187,11 +187,11 @@ class Parser:
                                                    int(h_data[8])])
         return self.ticker_horly_data
 
-    def parse(self):
+    def parse(self, code_name='code'):
         """
 
         :return:
         """
-        all_data = self.get_candles(code_name='code')
+        all_data = self.get_candles(code_name)
         return self.get_all_data_as_df(all_data)
 
