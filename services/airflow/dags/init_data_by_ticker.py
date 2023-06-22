@@ -14,6 +14,7 @@ from service_files.feature_creator import FeatureCreator
 from service_files.predictioner import PredictorPredict
 from service_files.parser_data import Parser
 import json
+import re
 
 
 MONGO_DB_NAME = 'investing'
@@ -149,7 +150,7 @@ def fn_get_subdata(**context):
     hook = PostgresHook(postgres_conn_id=context['postgres_conn_id'])
 
     for ticker_subdata in currencies + features:
-        sql = context['sql'].format(ticker_subdata)
+        sql = context['sql'].format("".join(re.findall(r"(\w*)", ticker_subdata)).upper())
         select_all = hook.get_records(sql=sql)
         select_all = list(map(lambda x: [x[0].strftime("%Y-%m-%d %H:00:00"), x[1]], select_all))
         subdata[ticker_subdata] = select_all

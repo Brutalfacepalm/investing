@@ -5,6 +5,7 @@ import pandas.io.sql as psql
 import json
 import click
 import torch
+import re
 
 from pymongo import MongoClient
 from pymongo.write_concern import WriteConcern
@@ -227,7 +228,7 @@ def select_from_mongo(db2_client, db2_collection, ticker, currencies, commoditie
     if currencies and commodities:
         subdata = currencies + commodities
         for k, sbdt in enumerate(subdata):
-            cursor = db2_client[db2_collection][sbdt]
+            cursor = db2_client[db2_collection]["".join(re.findall(r"(\w*)", sbdt)).upper()]
             sbdt_db2 = list(cursor.find(sort=[('time', -1)], projection={'_id': False,
                                                                          'time': True,
                                                                          'close': True}).limit(len_select * 2))[::-1]

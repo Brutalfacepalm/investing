@@ -194,7 +194,7 @@ def fn_postgres_load_subdata(**context):
     hook = SkipConflictPostgresHook(postgres_conn_id=context['postgres_conn_id'])
     data = json.loads(context['parse_data'])
     for k, v in data.items():
-        k = "".join(re.findall(r"(\w*)", k))
+        k = "".join(re.findall(r"(\w*)", k)).upper()
         hook.insert_rows(table=k, rows=v, resolve_conflict='time')
 
 
@@ -211,8 +211,8 @@ with DAG(
     postgres_create = PostgresOperator(
         task_id='postgres_create',
         postgres_conn_id="postgres_conn",
-        sql='\n'.join(['DROP TABLE IF EXISTS {}; \n CREATE TABLE IF NOT EXISTS {} (time timestamp UNIQUE NOT NULL, close float);'.format("".join(re.findall(r"(\w*)", t)),
-                                                                                                                                         "".join(re.findall(r"(\w*)", t))) for t in currencies + features]))
+        sql='\n'.join(['DROP TABLE IF EXISTS {}; \n CREATE TABLE IF NOT EXISTS {} (time timestamp UNIQUE NOT NULL, close float);'.format("".join(re.findall(r"(\w*)", t)).upper(),
+                                                                                                                                         "".join(re.findall(r"(\w*)", t)).upper()) for t in currencies + features]))
     mongo_create = PythonOperator(
         task_id="mongo_create",
         python_callable=fn_mongodb_create_collection,

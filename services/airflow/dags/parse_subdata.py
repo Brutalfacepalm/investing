@@ -14,6 +14,7 @@ from airflow.utils.context import Context
 from airflow.utils.operator_helpers import determine_kwargs
 
 import json
+import re
 from urllib.parse import urlencode
 
 
@@ -111,7 +112,7 @@ def fn_postgres_select_last_date(**context):
     hook = PostgresHook(postgres_conn_id=context['postgres_conn_id'])
     dates = []
     for t in context['tickers']:
-        sql = 'SELECT MAX(time) FROM {} ;'.format(t)
+        sql = 'SELECT MAX(time) FROM {} ;'.format("".join(re.findall(r"(\w*)", t)).upper())
         records = hook.get_records(sql=sql)[0][0]
         dates.append(records)
     return min(dates).strftime('%Y-%m-%d %H:00:00')
@@ -131,7 +132,7 @@ def fn_mongodb_select_last_date(**context):
         dates = []
         for ticker_subdata in context['tickers']:
             if ticker_subdata in db.list_collection_names():
-                collection = db[ticker_subdata]
+                collection = db["".join(re.findall(r"(\w*)", ticker_subdata)).upper()]
                 last_time = collection.find(sort=[("time", -1)]).limit(1)[0]['time']
                 dates.append(from_format(last_time, 'YYYY-MM-DD HH:00:00'))
         return min(dates).strftime('%Y-%m-%d %H:00:00')
@@ -178,7 +179,7 @@ def fn_get_endpoint(execution_date, **context):
                                            list(zip(*[list(v.values()) for v in meta])))))
     endpoints = {}
     for ticker_subdata in context['currencies']:
-        code = ticker_subdata.upper()
+        code = ticker_subdata
         curr_df = meta[(code == meta['name']) & (meta['market'].isin([5, 45]))]
         em = curr_df['id'].values[0]
         market = curr_df['market'].values[0]
@@ -253,7 +254,7 @@ def fn_postgres_load_new_data(**context):
     hook = SkipConflictPostgresHook(postgres_conn_id=context['postgres_conn_id'])
     data = json.loads(context['parse_data'])
     for ticker, subdata in data.items():
-        hook.insert_rows(table=ticker, rows=subdata, resolve_conflict='time')
+        hook.insert_rows(table="".join(re.findall(r"(\w*)", ticker)).upper(), rows=subdata, resolve_conflict='time')
 
 
 def fn_mongodb_load_new_data(**context):
@@ -270,7 +271,7 @@ def fn_mongodb_load_new_data(**context):
         data = json.loads(context['parse_data'])
         for ticker, subdata in data.items():
             to_insert = list(map(lambda x: dict(zip(['time', 'close'], x)), subdata))
-            collection = db[ticker]
+            collection = db["".join(re.findall(r"(\w*)", ticker)).upper()]
             collection.with_options(write_concern=WriteConcern(w=0)).insert_many(to_insert, ordered=False)
 
     except Exception as e:
