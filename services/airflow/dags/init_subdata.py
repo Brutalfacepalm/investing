@@ -140,7 +140,7 @@ def fn_parse_subdata(execution_date, **context):
                                is_feature=False,
                                meta_df=meta,
                                subdata=True)
-        data_as_df = parser_ticker.parse()
+        data_as_df = parser_ticker.parse(code_name='name')
         subdata[ticker_subdata] = data_as_df
 
     for ticker_subdata in features:

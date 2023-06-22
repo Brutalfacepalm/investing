@@ -85,7 +85,7 @@ class Parser:
             new_from_ = new_to_
         return dates
 
-    def get_url_period(self, ticker, start, end):
+    def get_url_period(self, ticker, start, end, code_name):
         """
 
         :param ticker:
@@ -108,7 +108,7 @@ class Parser:
                 return None
         else:
             code = self.ticker
-            curr_df = self.meta_information[(self.meta_information['code'].str.contains(self.ticker, regex=False)) &
+            curr_df = self.meta_information[(self.ticker == self.meta_information[code_name]) &
                                             (self.meta_information['market'].isin([1, 5, 24, 25, 45]))]
 
         self.em = curr_df['id'].values[0]
@@ -137,7 +137,7 @@ class Parser:
 
         return data_period
 
-    def get_candles(self):
+    def get_candles(self, code_name):
         """
 
         :return:
@@ -145,7 +145,7 @@ class Parser:
         all_data = []
         for start, end in self.get_dates_by_period(self.from_, self.to_):
 
-            url_period = self.get_url_period(self.ticker, start, end)
+            url_period = self.get_url_period(self.ticker, start, end, code_name)
             if url_period:
                 data_period = self.get_data_period(url_period)
                 sleep(.5)
@@ -192,6 +192,6 @@ class Parser:
 
         :return:
         """
-        all_data = self.get_candles()
+        all_data = self.get_candles(code_name='code')
         return self.get_all_data_as_df(all_data)
 
