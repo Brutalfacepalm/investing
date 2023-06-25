@@ -82,10 +82,11 @@ def fn_mongodb_create_collection(**context):
         db_name = context['db_name']
         db = client[db_name]
         for ticker_subdata in currencies + features:
+            ticker_subdata = "".join(re.findall(r"(\w*)", ticker_subdata)).upper()
             if ticker_subdata in db.list_collection_names():
                 db.drop_collection(ticker_subdata)
 
-            db.create_collection(name="".join(re.findall(r"(\w*)", ticker_subdata)).upper(),
+            db.create_collection(name=ticker_subdata,
                                  capped=True,
                                  size=2128 * MAX_LEN_DATA_COLLECTION_MONGO * 2,
                                  max=MAX_LEN_DATA_COLLECTION_MONGO * 2)

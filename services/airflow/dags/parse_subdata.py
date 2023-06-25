@@ -131,8 +131,9 @@ def fn_mongodb_select_last_date(**context):
         db = client[db_name]
         dates = []
         for ticker_subdata in context['tickers']:
+            ticker_subdata = "".join(re.findall(r"(\w*)", ticker_subdata)).upper()
             if ticker_subdata in db.list_collection_names():
-                collection = db["".join(re.findall(r"(\w*)", ticker_subdata)).upper()]
+                collection = db[ticker_subdata]
                 last_time = collection.find(sort=[("time", -1)]).limit(1)[0]['time']
                 dates.append(from_format(last_time, 'YYYY-MM-DD HH:00:00'))
         return min(dates).strftime('%Y-%m-%d %H:00:00')
