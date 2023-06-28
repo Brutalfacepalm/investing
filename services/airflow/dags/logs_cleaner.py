@@ -15,7 +15,7 @@ with DAG(
 ) as dag:
     clean_dir = BashOperator(
         task_id="clean_log_dir",
-        bash_command="find /opt/airflow/logs -mtime +7 -delete",
+        bash_command="find /opt/airflow/logs -type f -mtime +7 -delete",
     )
 
     clean_dir
