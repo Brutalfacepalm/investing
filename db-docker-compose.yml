@@ -26,7 +26,6 @@ x-airflow-common:
 
 services:
   postgres:
-#    image: postgres
     build:
       context: ./services/postgres
       dockerfile: ./Dockerfile
@@ -57,15 +56,12 @@ services:
     restart: unless-stopped
     networks:
       postgres:
-#        ipv4_address: 172.16.2.6
     depends_on:
       - postgres
 
   airflow-init:
     << : *airflow-common
     container_name: airflow_init
-#    restart: on-failure
-#    entrypoint: /bin/bash
     command: >
       bash -c "airflow db init &&
                 airflow users create --username admin --password admin --email admin@airflow.com --role Admin --firstname Admin --lastname Admin &&
@@ -137,37 +133,20 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL_DIFFERENT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-#      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
       KAFKA_LOG_RETENTION_HOURS: 24
       KAFKA_LOG_RETENTION_BYTES: 1073741824
       KAFKA_LOG_SEGMENT_BUTES: 1073741824
       KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 20000
       KAFKA_LOG_SEGMENT_DELETE_DELAY_MS: 1000
       KAFKA_METADATA_MAX_RETENTION_MS: 86400000
-#      CONFLUENT_METRICS_REPORTER_TOPIC_RETENTION_MS: 86400000
-#      CONFLUENT_METRICS_REPORTER_TOPIC_ROLL_MS: 3600000
-#      CONFLUENT_METRICS_REPORTER_VOLUME_METRICS_REFRESH_MS: 180000
       KAFKA_OFFSETS_RETENTION_MINUTES: 14400000
       KAFKA_LOG_CLEANER_DELETE_RETENTION_MS: 3600000
       KAFKA_DELETE_TOPIC_ENABLE: "true"
-#      KAFKA_DEFAULT_REPLICATION_FACTOR: 2
-#      KAFKA_CONFLUENT_TIER_METADATA_REPLICATION_FACTOR: 2
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
-#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 2
-#      KAFKA_CONFLUENT_CLUSTER_LINK_METADATA_TOPIC_REPLICATION_FACTOR: 2
-#      KAFKA_CONFLUENT_TOPIC_REPLICATION_FACTOR: 2
-#      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 2
-#      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-#      KAFKA_METRICS_RECORDING_LEVEL: WARNING
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"
-#      KAFKA_JMX_PORT: 9102
-#      KAFKA_JMX_HOSTNAME: localhost
-#      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: 192.168.1.15:39093
       CONFLUENT_METRICS_ENABLE: 'false'
     networks:
       postgres:
-#        ipv4_address: 172.16.2.12
 
   broker3:
     image: confluentinc/cp-server:latest
@@ -186,21 +165,16 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL_DIFFERENT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-#      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
       KAFKA_LOG_RETENTION_HOURS: 24
       KAFKA_LOG_RETENTION_BYTES: 1073741824
       KAFKA_LOG_SEGMENT_BUTES: 1073741824
       KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 20000
       KAFKA_LOG_SEGMENT_DELETE_DELAY_MS: 1000
       KAFKA_METADATA_MAX_RETENTION_MS: 86400000
-#      CONFLUENT_METRICS_REPORTER_TOPIC_RETENTION_MS: 86400000
-#      CONFLUENT_METRICS_REPORTER_TOPIC_ROLL_MS: 3600000
-#      CONFLUENT_METRICS_REPORTER_VOLUME_METRICS_REFRESH_MS: 180000
       KAFKA_OFFSETS_RETENTION_MINUTES: 14400000
       KAFKA_LOG_CLEANER_DELETE_RETENTION_MS: 3600000
       KAFKA_DELETE_TOPIC_ENABLE: "true"
 #      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-#      KAFKA_METRICS_RECORDING_LEVEL: WARNING
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"
 #      KAFKA_JMX_PORT: 9103
@@ -266,10 +240,8 @@ services:
       - 5050:80
       - 8080:8080
       - 4040:4040
-#      - 5432:5432
     networks:
       postgres:
-#        ipv4_address: 172.16.2.4
     links:
       - postgres
     depends_on:
@@ -277,11 +249,6 @@ services:
 
 networks:
   postgres:
-#    driver: bridge
-#    ipam:
-#      config:
-#        - subnet: 172.16.2.0/24
-#          gateway: 172.16.2.1
 
 volumes:
   postgres:

@@ -1,11 +1,6 @@
-import pandas as pd
-import json
-import pymongo
 from pendulum import datetime, from_format
 from airflow import DAG
 from airflow.operators.bash import BashOperator
-
-
 
 with DAG(
         dag_id='000_clean_log_dir',
