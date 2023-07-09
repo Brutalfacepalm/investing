@@ -1,6 +1,7 @@
 .idea
 trash
 research
+models
 **/logs
 **/__pycache__
 **.ipynb_checkpoints
