@@ -21,7 +21,9 @@ x-airflow-common:
     - ./services/airflow/airflow-data/logs:/opt/airflow/logs
     - ./services/airflow/airflow-data/plugins:/opt/airflow/plugins
     - ./services/airflow/airflow-data/airflow.cfg:/opt/airlfow/airflow.cfg
-    - ./models:/opt/airflow
+    - type: bind
+        source: ./models
+        target: /opt/airflow
   depends_on:
     - postgres
 
@@ -195,7 +197,9 @@ services:
     command: python data_worker.py -f data -t features  -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:192.168.1.13:27017:investing
     volumes:
       - ./services/service_files:/home/app
-      - ./models:/home/app
+      - type: bind
+          source: ./models
+          target: /home/app
     depends_on:
       - kafka_feature_worker
     networks:
@@ -210,7 +214,9 @@ services:
     command: python data_worker.py -f features -t predicts -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:192.168.1.13:27017:investing
     volumes:
       - ./services/service_files:/home/app
-      - ./models:/home/app
+      - type: bind
+          source: ./models
+          target: /home/app
     depends_on:
       - kafka_predicts_worker
     networks:
@@ -225,7 +231,9 @@ services:
     command: python data_worker.py -f predicts -t empty -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:192.168.1.13:27017:investing
     volumes:
       - ./services/service_files:/home/app
-      - ./models:/home/app
+      - type: bind
+          source: ./models
+          target: /home/app
     depends_on:
       - broker2
     networks:
