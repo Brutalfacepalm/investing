@@ -1,2 +1,7 @@
 [core]
-    no_scm = True
+    remote = investing_yos
+    autostage = true
+['remote "investing_yos"']
+    url = s3://investing
+    endpointurl = https://storage.yandexcloud.net
+    region = ru-central1

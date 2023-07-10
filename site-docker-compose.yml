@@ -62,6 +62,7 @@ services:
     command: python data_worker.py -f data -t features  -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
       - ./services/service_files:/home/app
+      - ./models:/home/app
     depends_on:
       - kafka_feature_worker
     networks:
@@ -76,6 +77,7 @@ services:
     command: python data_worker.py -f features -t predicts -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
       - ./services/service_files:/home/app
+      - ./models:/home/app
     depends_on:
       - kafka_predicts_worker
     networks:
@@ -90,6 +92,7 @@ services:
     command: python data_worker.py -f predicts -t empty -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:192.168.1.15:5432 -db2 operate_database:operate_database:mongo:27017:investing
     volumes:
       - ./services/service_files:/home/app
+      - ./models:/home/app
     depends_on:
       - broker1
       - zookeeper

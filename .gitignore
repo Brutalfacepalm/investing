@@ -1,8 +1,11 @@
 .idea
 trash
 research
-models
+trash/models
 **/logs
 **/__pycache__
 **.ipynb_checkpoints
 **.csv
+.dvc/config.local
+.dvc/tmp
+.dvc/cache

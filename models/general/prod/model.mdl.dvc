@@ -1,0 +1,5 @@
+outs:
+- md5: a3a9aeb868568d8257c4c20423f11b6b
+  size: 120677896
+  hash: md5
+  path: model.mdl
