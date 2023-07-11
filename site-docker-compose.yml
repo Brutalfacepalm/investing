@@ -64,7 +64,7 @@ services:
       - ./services/service_files:/home/app
       - type: bind
         source: ./models
-        target: /home/app
+        target: /home/app/models
     depends_on:
       - kafka_feature_worker
     networks:
@@ -81,7 +81,7 @@ services:
       - ./services/service_files:/home/app
       - type: bind
         source: ./models
-        target: /home/app
+        target: /home/app/models
     depends_on:
       - kafka_predicts_worker
     networks:
@@ -98,7 +98,7 @@ services:
       - ./services/service_files:/home/app
       - type: bind
         source: ./models
-        target: /home/app
+        target: /home/app/models
     depends_on:
       - broker1
       - zookeeper

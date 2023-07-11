@@ -23,7 +23,7 @@ x-airflow-common:
     - ./services/airflow/airflow-data/airflow.cfg:/opt/airlfow/airflow.cfg
     - type: bind
       source: ./models
-      target: /opt/airflow
+      target: /opt/airflow/models
   depends_on:
     - postgres
 
@@ -199,7 +199,7 @@ services:
       - ./services/service_files:/home/app
       - type: bind
         source: ./models
-        target: /home/app
+        target: /home/app/models
     depends_on:
       - kafka_feature_worker
     networks:
@@ -216,7 +216,7 @@ services:
       - ./services/service_files:/home/app
       - type: bind
         source: ./models
-        target: /home/app
+        target: /home/app/models
     depends_on:
       - kafka_predicts_worker
     networks:
@@ -233,7 +233,7 @@ services:
       - ./services/service_files:/home/app
       - type: bind
         source: ./models
-        target: /home/app
+        target: /home/app/models
     depends_on:
       - broker2
     networks:
