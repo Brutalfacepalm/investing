@@ -4,8 +4,12 @@ research
 trash/models
 **/logs
 **/__pycache__
+**/__init__.py
 **.ipynb_checkpoints
 **.csv
+**.mdl
+**.pkl
+**.ipynb
 .dvc/config.local
 .dvc/tmp
 .dvc/cache
