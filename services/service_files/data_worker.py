@@ -149,8 +149,8 @@ def generate_predictions_from_features(db2_client, db2_collection, ticker):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     predictioner = PredictorPredict(device, seq_len=54, target_mode='abs', log=False)
     res = predictioner.predict(data,
-                               f'.models/{ticker}/prod/{MODEL_FILE_NAME}',
-                               f'.models/{ticker}/prod/{SCALER_FILE_NAME}')
+                               f'./models/{ticker}/prod/{MODEL_FILE_NAME}',
+                               f'./models/{ticker}/prod/{SCALER_FILE_NAME}')
     to_insert = [{'time': k.strftime('%Y-%m-%d %H:00:00'),
                   'open': v[0],
                   'high': v[1],
