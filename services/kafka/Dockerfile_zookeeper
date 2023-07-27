@@ -1,0 +1,5 @@
+FROM confluentinc/cp-zookeeper:7.2.6
+
+USER root
+RUN chown -R appuser:appuser /var/lib
+USER appuser
