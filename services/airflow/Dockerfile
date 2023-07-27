@@ -1,4 +1,4 @@
-FROM apache/airflow:2.6.1-python3.10
+FROM apache/airflow:slim-latest-python3.10
 
 USER root
 WORKDIR /opt/airflow/
@@ -36,11 +36,15 @@ RUN chmod 777 /usr/bin/google-chrome
 
 USER airflow
 
+RUN pip install psycopg2-binary>=2.8.0 --user
+RUN pip install pandas>=1.5.3 --user
 RUN pip install --upgrade requests --user
 RUN pip install apache-airflow==2.6.1 --user
 RUN pip install confluent-kafka==2.0.2 --user
 RUN pip install airflow-provider-kafka==0.2.2 --user
 RUN pip install apache-airflow-providers-mongo==3.0.0 --user
+RUN pip install apache-airflow-providers-postgres==5.5.2 --user
+RUN pip install apache-airflow-providers-common-sql>=1.3.1
 RUN pip install holidays==0.14.2 --user
 RUN pip install numba==0.56.4 --user
 RUN pip install torch==2.0.1 --user

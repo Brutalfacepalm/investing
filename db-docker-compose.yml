@@ -68,8 +68,8 @@ services:
     command: >
       bash -c "airflow db init &&
                 airflow users create --username admin --password admin --email admin@airflow.com --role Admin --firstname Admin --lastname Admin &&
-                airflow connections add --conn-uri postgres://investing_main_user:investing_main_user@postgres:5432/investing_db postgres_conn &&
-                airflow connections add --conn-uri mongo://operate_database:operate_database@192.168.1.13:27017 mongodb_conn &&
+                airflow connections add --conn-uri postgres://investing_main_user:investing_main_user@51.250.78.35:5432/investing_db postgres_conn &&
+                airflow connections add --conn-uri mongo://operate_database:operate_database@51.250.4.91:27017 mongodb_conn &&
                 airflow connections add --conn-uri http://export.finam.ru/ http_finam"
     depends_on:
       - postgres
@@ -130,8 +130,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 2
       ALLOW_PLAINTEXT_LISTENER: "yes"
-      KAFKA_ZOOKEEPER_CONNECT: 192.168.1.13:22181
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker2:9093,EXTERNAL://localhost:29093,EXTERNAL_DIFFERENT://192.168.1.15:39093
+      KAFKA_ZOOKEEPER_CONNECT: 51.250.4.91:22181
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker2:9093,EXTERNAL://localhost:29093,EXTERNAL_DIFFERENT://51.250.78.35:39093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,EXTERNAL_DIFFERENT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL_DIFFERENT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
@@ -162,8 +162,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 3
       ALLOW_PLAINTEXT_LISTENER: "yes"
-      KAFKA_ZOOKEEPER_CONNECT: 192.168.1.13:22181
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker3:9094,EXTERNAL://localhost:29094,EXTERNAL_DIFFERENT://192.168.1.15:39094
+      KAFKA_ZOOKEEPER_CONNECT: 51.250.4.91:22181
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker3:9094,EXTERNAL://localhost:29094,EXTERNAL_DIFFERENT://51.250.78.35:39094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,EXTERNAL_DIFFERENT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL_DIFFERENT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
@@ -194,7 +194,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: kafka_data_worker
     restart: always
-    command: python data_worker.py -f data -t features  -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:192.168.1.13:27017:investing
+    command: python data_worker.py -f data -t features  -bs 51.250.4.91:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:51.250.4.91:27017:investing
     volumes:
       - ./services/service_files:/home/app
       - type: bind
@@ -211,7 +211,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: kafka_feature_worker
     restart: always
-    command: python data_worker.py -f features -t predicts -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:192.168.1.13:27017:investing
+    command: python data_worker.py -f features -t predicts -bs 51.250.4.91:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:51.250.4.91:27017:investing
     volumes:
       - ./services/service_files:/home/app
       - type: bind
@@ -228,7 +228,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: kafka_predicts_worker
     restart: always
-    command: python data_worker.py -f predicts -t empty -bs 192.168.1.13:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:192.168.1.13:27017:investing
+    command: python data_worker.py -f predicts -t empty -bs 51.250.4.91:39092 -db1 investing_main_user:investing_main_user:investing_db:postgres:5432 -db2 operate_database:operate_database:51.250.4.91:27017:investing
     volumes:
       - ./services/service_files:/home/app
       - type: bind
@@ -266,4 +266,5 @@ volumes:
   postgres:
   pgadmin:
   mlflow:
+
 

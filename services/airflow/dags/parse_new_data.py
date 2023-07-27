@@ -21,7 +21,7 @@ from urllib.parse import urlencode
 
 
 MONGO_DB_NAME = 'investing'
-BOOTSTRAP_KAFKA_SERVER = '192.168.1.13:39092'
+BOOTSTRAP_KAFKA_SERVER = '51.250.4.91:39092'
 
 
 class SkipConflictPostgresHook(PostgresHook):

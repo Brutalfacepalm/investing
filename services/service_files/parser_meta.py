@@ -30,7 +30,7 @@ __all__ = ['FinamExportError', 'FinamDownloadError', 'FinamThrottlingError', 'Fi
            'FinamObjectNotFoundError', 'FinamTooLongTimeframeError', 'FinamAlreadyInProgressError']
 
 FINAM_CHARSET = 'cp1251'
-# FINAM_TRUSTED_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) ' \
+#FINAM_TRUSTED_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) ' \
 #                            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
 FINAM_TRUSTED_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) ' \
                            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
@@ -166,6 +166,7 @@ def parse_script_link(html, src_entry):
     :param src_entry:
     :return:
     """
+#    print(src_entry)
     re_src_entry = re.escape(src_entry)
     pattern = '<script src="([^"]*{}[^"]*)"'.format(re_src_entry)
     match = re.search(pattern, html)
@@ -213,7 +214,7 @@ def fetch_url(url, lines=False, sel=False):
             response = fetcher.wait.until(
                 lambda driver: driver.find_element(*locator).get_attribute('outerHTML')
             )
-        # print(f'RESPONSE SELENIUM - {response}')
+#        print(f'RESPONSE SELENIUM - {response}')
         return response
     else:
         try:
@@ -273,7 +274,7 @@ class ExporterMetaPage(object):
         :return:
         """
         html = self._fetcher(FINAM_ENTRY_URL, sel=True)
-        # print(f'RESPONSE - {html}')
+ #       print(f'RESPONSE - {html}')
         try:
             url = parse_script_link(html, FINAM_META_FILENAME)
             print(f'FIND URL - {url}')
@@ -318,6 +319,7 @@ class ExporterMetaFile(object):
         :param data:
         :return:
         """
+        print(data)
         cols = ['id', 'name', 'code', 'market']
         parsed = dict()
         urls = data[8][19:-1]
