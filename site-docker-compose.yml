@@ -202,29 +202,29 @@ services:
     networks:
       flask:
 
-  control-center:
-    image: confluentinc/cp-enterprise-control-center:latest
-    hostname: control-center
-    container_name: control-center
-    restart: always
-    depends_on:
-      - broker1
-      - zookeeper
-    ports:
-      - "9021:9021"
-    environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: PLAINTEXT://51.250.4.91:39092,PLAINTEXT://51.250.78.35:39093,PLAINTEXT://51.250.78.35:39094
-      CONTROL_CENTER_ZOOKEEPER_CONNECT: "51.250.4.91:22181"
-      CONTROL_CENTER_REPLICATION_FACTOR: 3
-      CONTROL_CENTER_INTERNAL_TOPICS_REPLICATION: 3
-      CONTROL_CENTER_COMMAND_TOPIC_REPLICATION: 3
-      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_REPLICATION: 3
-      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 3
-      CONTROL_CENTER_COMMAND_TOPIC_PARTITIONS: 3
-      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 3
-      PORT: 9021
-    networks:
-      flask:
+#  control-center:
+#    image: confluentinc/cp-enterprise-control-center:latest
+#    hostname: control-center
+#    container_name: control-center
+#    restart: always
+#    depends_on:
+#      - broker1
+#      - zookeeper
+#    ports:
+#      - "9021:9021"
+#    environment:
+#      CONTROL_CENTER_BOOTSTRAP_SERVERS: PLAINTEXT://51.250.4.91:39092,PLAINTEXT://51.250.78.35:39093,PLAINTEXT://51.250.78.35:39094
+#      CONTROL_CENTER_ZOOKEEPER_CONNECT: "51.250.4.91:22181"
+#      CONTROL_CENTER_REPLICATION_FACTOR: 3
+#      CONTROL_CENTER_INTERNAL_TOPICS_REPLICATION: 3
+#      CONTROL_CENTER_COMMAND_TOPIC_REPLICATION: 3
+#      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_REPLICATION: 3
+#      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 3
+#      CONTROL_CENTER_COMMAND_TOPIC_PARTITIONS: 3
+#      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 3
+#      PORT: 9021
+#    networks:
+#      flask:
 
   nginx:
     build:
