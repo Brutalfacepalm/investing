@@ -15,8 +15,8 @@ from feature_creator import FeatureCreator
 from predictioner import PredictorPredict
 
 
-MODEL_PATH = 'model.mdl'
-SCALER_PATH = 'scaler.pkl'
+MODEL_FILE_NAME = 'model.mdl'
+SCALER_FILE_NAME = 'scaler.pkl'
 CURRENCIES_PATH = 'currencies.json'
 FEATURES_PATH = 'features.json'
 
@@ -148,7 +148,9 @@ def generate_predictions_from_features(db2_client, db2_collection, ticker):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     predictioner = PredictorPredict(device, seq_len=54, target_mode='abs', log=False)
-    res = predictioner.predict(data, MODEL_PATH, SCALER_PATH)
+    res = predictioner.predict(data,
+                               f'.models/{ticker}/prod/{MODEL_FILE_NAME}',
+                               f'.models/{ticker}/prod/{SCALER_FILE_NAME}')
     to_insert = [{'time': k.strftime('%Y-%m-%d %H:00:00'),
                   'open': v[0],
                   'high': v[1],
@@ -244,7 +246,7 @@ def select_from_mongo(db2_client, db2_collection, ticker, currencies, commoditie
 @click.option('--bootstrap_servers', '-bs', default='broker1:9092')
 @click.option('--from_topic', '-f', default='data')
 @click.option('--to_topic', '-t', default='features')
-@click.option('--db1_connect', '-db1', default='investing_db:investing_db:investing_db:192.168.1.15:5432')
+@click.option('--db1_connect', '-db1', default='investing_db:investing_db:investing_db:localhost:5432')
 @click.option('--db2_connect', '-db2', default='operate_database:operate_database:localhost:27017:investing')
 def run_worker(bootstrap_servers, from_topic, to_topic, db1_connect, db2_connect):
     """

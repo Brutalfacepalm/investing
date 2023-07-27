@@ -14,3 +14,4 @@ trash/models
 .dvc/config.local
 .dvc/tmp
 .dvc/cache
+**ssh**
